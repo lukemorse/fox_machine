@@ -3,6 +3,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
 
 import '../game/fox_machine_game.dart';
+import '../constants/game_constants.dart';
 import 'obstacle.dart';
 import 'collectible.dart';
 import '../models/game_state.dart';
@@ -40,11 +41,12 @@ class Player extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Add hitbox for collision detection
+    // Add hitbox for collision detection - make it smaller and positioned correctly
     final hitbox = RectangleHitbox(
-      size: Vector2(size.x * 0.8, size.y * 0.8),
-      position: Vector2(size.x * 0.1, size.y * 0.1),
-    );
+      size: Vector2(size.x * 0.5, size.y * 0.7), // Make hitbox smaller
+      position: Vector2(size.x * 0.25, 0), // Position it at the bottom center
+      anchor: Anchor.bottomCenter, // Anchor at bottom center to match player
+    )..debugMode = GameConstants.debug;
     add(hitbox);
 
     // Load Rive animation
@@ -190,8 +192,37 @@ class Player extends PositionComponent
       toggleRobotForm(false);
     }
 
-    // TODO: Reset animations to running state
-    // Example: normalFoxAnimation.triggerAnimation('run');
+    // A more reliable way to reset animations is to recreate the animation component
+    _resetAnimation();
+  }
+
+  // Helper method to reset animation
+  Future<void> _resetAnimation() async {
+    try {
+      // Remove the current animation component
+      normalFoxAnimation.removeFromParent();
+
+      // Recreate the animation component
+      final artboard =
+          await loadArtboard(RiveFile.asset('assets/rive/fox.riv'));
+      normalFoxAnimation = RiveComponent(
+        artboard: artboard,
+        size: size,
+      );
+
+      // Add the normal fox animation
+      add(normalFoxAnimation);
+
+      // Set initial animation state to walking
+      final controller = StateMachineController.fromArtboard(
+        artboard,
+        'State Machine 1',
+      );
+      artboard.addController(controller!);
+      controller.findInput<double>('walk')!.value = 2;
+    } catch (e) {
+      print('Error resetting animation: $e');
+    }
   }
 
   void updateJumpVelocity(double jumpPower) {
@@ -213,6 +244,7 @@ class Player extends PositionComponent
     super.onCollision(intersectionPoints, other);
 
     if (other is Obstacle) {
+      // The collision system will only call this if the hitboxes are actually overlapping
       if (!isRobotForm) {
         // Game over if hit obstacle in normal form
         gameRef.gameOver();

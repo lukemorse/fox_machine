@@ -1,7 +1,9 @@
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/game_screen.dart';
+import 'routes/game_router.dart';
+import 'theme/game_theme.dart';
+import 'constants/game_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,11 @@ void main() async {
     SystemUiMode.immersiveSticky,
   );
 
+  // Enable debug mode here during development
+  GameConstants.debug = true;
+  // Uncomment to see detailed collision logs
+  // GameConstants.debugCollisions = true;
+
   runApp(const MyApp());
 }
 
@@ -33,10 +40,19 @@ class MyApp extends StatelessWidget {
       title: 'Fox Machine',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        fontFamily: 'Roboto',
+        primaryColor: GameTheme.primaryColor,
+        scaffoldBackgroundColor: GameTheme.backgroundColor,
+        fontFamily: 'VT323',
+        textTheme: TextTheme(
+          headlineLarge: GameTheme.titleStyle,
+          headlineMedium: GameTheme.headingStyle,
+          bodyLarge: GameTheme.bodyStyle,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: GameTheme.primaryButtonStyle,
+        ),
       ),
-      home: const GameScreen(),
+      home: const GameNavigator(),
     );
   }
 }

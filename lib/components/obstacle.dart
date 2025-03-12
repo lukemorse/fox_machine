@@ -4,6 +4,7 @@ import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 
 import '../game/fox_machine_game.dart';
+import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 
 enum ObstacleType { tree, rock, river }
@@ -40,13 +41,37 @@ class Obstacle extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Add hitbox for collision detection
-    final hitbox = RectangleHitbox(
-      size: Vector2(size.x * 0.8, size.y * 0.8),
-      position: Vector2(size.x * 0.1,
-          size.y * 0.2), // Adjusted y position to better align with visual
-      anchor: Anchor.center, // Changed anchor to center for better alignment
-    );
+    // Create hitbox based on obstacle type
+    ShapeHitbox hitbox;
+    switch (type) {
+      case ObstacleType.tree:
+        // Tall, thin hitbox for trees
+        hitbox = RectangleHitbox(
+          size: Vector2(30, 70),
+          position: Vector2(0, -35), // Move up from bottom center
+          anchor: Anchor.bottomCenter,
+        );
+        break;
+      case ObstacleType.rock:
+        // Circular hitbox for rocks
+        hitbox = CircleHitbox(
+          radius: 25,
+          position: Vector2(0, -25), // Move up from bottom center
+          anchor: Anchor.bottomCenter,
+        );
+        break;
+      case ObstacleType.river:
+        // Flat, wide hitbox for rivers
+        hitbox = RectangleHitbox(
+          size: Vector2(60, 15),
+          position: Vector2(0, -7.5), // Move up from bottom center
+          anchor: Anchor.bottomCenter,
+        );
+        break;
+    }
+
+    // Add debug visualization if enabled
+    hitbox.debugMode = GameConstants.debug;
     add(hitbox);
 
     // Create different shapes based on obstacle type (placeholders)

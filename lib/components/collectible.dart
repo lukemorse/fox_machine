@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 
 import '../game/fox_machine_game.dart';
+import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 
 enum CollectibleType { berry, crystal, special }
@@ -56,7 +58,7 @@ class Collectible extends PositionComponent
     add(CircleHitbox(
       radius: size.x / 2,
       anchor: anchor,
-    ));
+    )..debugMode = GameConstants.debug);
 
     // Create different shapes based on collectible type (placeholders)
     Paint paint;
@@ -141,12 +143,18 @@ class Collectible extends PositionComponent
     switch (type) {
       case CollectibleType.berry:
         gameRef.score += 10;
+        // Add berry collection particle effect
+        _addCollectionParticles(Colors.red);
         break;
       case CollectibleType.crystal:
         gameRef.score += 50;
+        // Add crystal collection particle effect
+        _addCollectionParticles(Colors.purple);
         break;
       case CollectibleType.special:
         gameRef.score += 100;
+        // Add special collection particle effect
+        _addCollectionParticles(Colors.yellow);
         break;
     }
 
@@ -164,6 +172,60 @@ class Collectible extends PositionComponent
     // Remove after brief animation
     Future.delayed(const Duration(milliseconds: 200), () {
       removeFromParent();
+    });
+  }
+
+  // Helper method to add particle effects on collection
+  void _addCollectionParticles(Color color) {
+    final random = Random();
+    final particleCount = 20;
+
+    // Create particle component
+    final particleComponent = ParticleSystemComponent(
+      particle: Particle.generate(
+        count: particleCount,
+        lifespan: 0.5,
+        generator: (i) {
+          final speed = random.nextDouble() * 100 + 50;
+          final angle = random.nextDouble() * 2 * pi;
+          final offset = Vector2(cos(angle), sin(angle)) * speed;
+
+          return AcceleratedParticle(
+            acceleration: Vector2(0, 200),
+            speed: offset,
+            position: Vector2.zero(),
+            child: ComputedParticle(
+              renderer: (canvas, particle) {
+                final paint = Paint()
+                  ..color = color.withOpacity(
+                      (1 - particle.progress) * random.nextDouble() * 0.5 + 0.5)
+                  ..style = PaintingStyle.fill;
+
+                final size =
+                    (1 - particle.progress) * random.nextDouble() * 5 + 2;
+                canvas.drawCircle(
+                  Offset.zero,
+                  size,
+                  paint,
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+
+    // Position the particle system at the collectible's position
+    particleComponent.position = position.clone();
+
+    // Add the particle system to the game world
+    gameRef.gameWorld.add(particleComponent);
+
+    // Remove the particle system after it completes
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (particleComponent.isMounted) {
+        particleComponent.removeFromParent();
+      }
     });
   }
 }

@@ -8,60 +8,168 @@ import '../components/player.dart';
 import '../components/obstacle.dart';
 import '../components/collectible.dart';
 import '../components/background.dart';
+import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 
-// Define the full-screen menu overlay widget
-class FullScreenMenuOverlay extends StatelessWidget {
+// Define the HUD overlay widget
+class HUDOverlay extends StatelessWidget {
+  final FoxMachineGame game;
+
+  const HUDOverlay({super.key, required this.game});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black.withOpacity(0.5),
-      child: Center(
-        child: Text(
-          'Main Menu',
-          style: TextStyle(fontSize: 48, color: Colors.white),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Score display
+          Text(
+            'Score: ${game.score.toInt()}',
+            style: const TextStyle(
+              fontSize: 24,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  blurRadius: 2.0,
+                  color: Colors.black,
+                  offset: Offset(1.0, 1.0),
+                ),
+              ],
+              decoration: TextDecoration.none,
+            ),
+          ),
+
+          // Robot mode indicator
+          game.isRobotForm
+              ? const Text(
+                  'ROBOT MODE',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                    decoration: TextDecoration.none,
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ],
+      ),
+    );
+  }
+}
+
+// Define the game over overlay widget
+class GameOverOverlay extends StatelessWidget {
+  final Function onMainMenuPressed;
+  final Function onRestartPressed;
+  final int score;
+
+  const GameOverOverlay({
+    super.key,
+    required this.onMainMenuPressed,
+    required this.onRestartPressed,
+    required this.score,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Game Over',
+              style: TextStyle(
+                fontSize: 30,
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+                decoration: TextDecoration.none,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Score: $score',
+              style: const TextStyle(
+                fontSize: 24,
+                color: Colors.white,
+                decoration: TextDecoration.none,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  onPressed: () => onRestartPressed(),
+                  child: const Text(
+                    'Play Again',
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                  ),
+                  onPressed: () => onMainMenuPressed(),
+                  child: const Text(
+                    'Main Menu',
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// Define the HUD overlay widget
-class HUDOverlay extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.topLeft,
-      padding: EdgeInsets.all(10),
-      child: Text(
-        'Score: 0',
-        style: TextStyle(fontSize: 24, color: Colors.white),
-      ),
-    );
-  }
-}
-
 class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
+  // Optional callback for navigating back to main menu
+  Function? onMainMenuPressed;
+
   // Game states
-  GameState gameState = GameState.menu;
+  GameState gameState = GameState.playing; // Start directly in playing mode
 
   // Game variables
   double score = 0;
   double distanceTraveled = 0;
-  double gameSpeed = 300; // pixels per second
-  double speedMultiplier = 1.0;
+  double gameSpeed = GameConstants.baseGameSpeed; // pixels per second
+  double speedMultiplier = GameConstants.normalSpeedMultiplier;
   bool isRobotForm = false;
 
   // For variable jump height
   bool isTapHeld = false;
   double tapHoldDuration = 0.0;
-  double maxJumpHoldTime =
-      0.5; // Maximum time to hold for highest jump (in seconds)
+  double maxJumpHoldTime = GameConstants.maxJumpHoldTime; // Maximum time to hold for highest jump (in seconds)
   double currentJumpPower = 0.0;
 
   // Viewport and scaling - using static constants so they can be accessed from components
-  static const double designResolutionWidth = 1280.0;
-  static const double designResolutionHeight = 720.0;
+  static const double designResolutionWidth = GameConstants.designResolutionWidth;
+  static const double designResolutionHeight = GameConstants.designResolutionHeight;
   static final Vector2 designResolution =
       Vector2(designResolutionWidth, designResolutionHeight);
 
@@ -73,21 +181,30 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   late double scaleY;
 
   // Components
-  late Player player;
+  Player? _player; // Private nullable player reference
   late BackgroundComponent background;
 
+  // Player accessor with null safety
+  Player get player {
+    if (_player == null) {
+      _player = Player(groundLevel: groundLevel);
+      gameWorld.add(_player!);
+    }
+    return _player!;
+  }
+
   // For obstacle and collectible generation
-  final double obstacleSpawnRate = 1.5; // in seconds
+  final double obstacleSpawnRate = GameConstants.obstacleSpawnRate; // in seconds
   double timeSinceLastObstacle = 0;
 
-  final double collectibleSpawnRate = 2.0; // in seconds
+  final double collectibleSpawnRate = GameConstants.collectibleSpawnRate; // in seconds
   double timeSinceLastCollectible = 0;
 
   // Camera setup
   late CameraComponent gameCamera;
   late World gameWorld;
 
-  FoxMachineGame() {
+  FoxMachineGame({this.onMainMenuPressed}) {
     // Create world
     gameWorld = World();
 
@@ -100,13 +217,13 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     // Center the camera
     gameCamera.viewfinder.anchor = Anchor.center;
+
+    // Set ground level directly in constructor
+    groundLevel = designResolutionHeight * 0.85;
   }
 
   @override
   Future<void> onLoad() async {
-    // Set ground level at 75% of screen height
-    groundLevel = designResolutionHeight * 0.75;
-
     // Calculate scaling factors for different device sizes
     scaleX = size.x / designResolutionWidth;
     scaleY = size.y / designResolutionHeight;
@@ -122,32 +239,39 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     // TODO: Initialize background music here using flame_audio
     // Example: FlameAudio.bgm.play('background_music.mp3');
 
-    // Initialize overlay visibility based on initial game state
-    if (gameState == GameState.menu) {
-      overlays.add('menu');
-    } else {
-      overlays.add('hud');
-    }
-
     // Add background
     background = await BackgroundComponent.create();
     gameWorld.add(background);
 
-    // Add player
-    player = Player(groundLevel: groundLevel);
-    gameWorld.add(player);
+    // Initialize player
+    _player = Player(groundLevel: groundLevel);
+    gameWorld.add(_player!);
 
     return super.onLoad();
   }
 
   @override
-  Map<String, WidgetBuilder> get overlayBuilders => {
-        'menu': (BuildContext context) {
-          return FullScreenMenuOverlay(); // Ensure menu is full screen
-        },
-        'hud': (BuildContext context) {
-          return HUDOverlay();
-        },
+  Map<String, OverlayWidgetBuilder<FoxMachineGame>> get overlayBuilders => {
+        'hud': (BuildContext context, FoxMachineGame game) =>
+            HUDOverlay(game: game),
+        'gameOver': (BuildContext context, FoxMachineGame game) =>
+            GameOverOverlay(
+              score: game.score.toInt(),
+              onRestartPressed: () {
+                game.restartFromGameOver();
+              },
+              onMainMenuPressed: () {
+                // Go back to main menu if callback exists
+                if (game.onMainMenuPressed != null) {
+                  game.reset();
+                  // Ensure the gameOver overlay is removed before going to main menu
+                  if (game.overlays.isActive('gameOver')) {
+                    game.overlays.remove('gameOver');
+                  }
+                  game.onMainMenuPressed!();
+                }
+              },
+            ),
       };
 
   @override
@@ -159,6 +283,12 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     // Update score and distance
     score += dt * 10;
     distanceTraveled += dt * gameSpeed * speedMultiplier;
+
+    // Force rebuild of HUD overlay to update score
+    if (overlays.isActive('hud')) {
+      overlays.remove('hud');
+      overlays.add('hud');
+    }
 
     // Update jump power if tap is being held
     if (isTapHeld) {
@@ -227,7 +357,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   void toggleRobotForm() {
     isRobotForm = !isRobotForm;
     player.toggleRobotForm(isRobotForm);
-    speedMultiplier = isRobotForm ? 1.8 : 1.0;
+    speedMultiplier = isRobotForm ? GameConstants.robotSpeedMultiplier : GameConstants.normalSpeedMultiplier;
 
     // TODO: Play transformation sound effect
     // Example: FlameAudio.play('transform.mp3');
@@ -235,7 +365,13 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   void gameOver() {
     gameState = GameState.gameOver;
-    overlays.remove('hud');
+
+    // Make sure hud is removed first if it's active
+    if (overlays.isActive('hud')) {
+      overlays.remove('hud');
+    }
+
+    // Add the game over overlay
     overlays.add('gameOver');
 
     // TODO: Play game over sound effect
@@ -247,8 +383,8 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     gameState = GameState.playing;
     score = 0;
     distanceTraveled = 0;
-    gameSpeed = 300;
-    speedMultiplier = 1.0;
+    gameSpeed = GameConstants.baseGameSpeed;
+    speedMultiplier = GameConstants.normalSpeedMultiplier;
     isRobotForm = false;
     isTapHeld = false;
     tapHoldDuration = 0.0;
@@ -262,12 +398,30 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
         .whereType<Collectible>()
         .forEach((collectible) => collectible.removeFromParent());
 
-    // Reset player
-    player.reset();
+    // Check if player exists in the game world
+    if (gameWorld.children.whereType<Player>().isEmpty) {
+      // Player doesn't exist, create a new one
+      _player = Player(groundLevel: groundLevel);
+      gameWorld.add(_player!);
+    } else if (_player != null) {
+      // Player exists, just reset it
+      _player!.reset();
+    }
 
     // TODO: Play game start sound effect
     // Example: FlameAudio.play('game_start.mp3');
     // TODO: Start or restart background music
+  }
+
+  // This method can be called safely from the overlays after the game is initialized
+  void restartFromGameOver() {
+    reset();
+    if (overlays.isActive('gameOver')) {
+      overlays.remove('gameOver');
+    }
+    if (!overlays.isActive('hud')) {
+      overlays.add('hud');
+    }
   }
 
   void pause() {

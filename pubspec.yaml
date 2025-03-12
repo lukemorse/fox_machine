@@ -38,6 +38,7 @@ dependencies:
   flame_audio: ^2.11.0
   flame_rive: ^1.10.9
   flutter_soloud: ^3.0.3
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
