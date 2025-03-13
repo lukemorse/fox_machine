@@ -1,9 +1,8 @@
 /// Constants used throughout the game application
 class GameConstants {
   // Debug flags
-  static bool debug = false;
-  static bool debugCollisions =
-      false; // Additional flag for collision debugging
+  static bool debug = true;
+  static bool debugCollisions = true; // Additional flag for collision debugging
 
   // Game design resolution
   static const double designResolutionWidth = 1280.0;
@@ -27,4 +26,9 @@ class GameConstants {
   // Jump controls
   static const double maxJumpHoldTime =
       0.5; // Maximum time to hold for highest jump
+
+  // Collision groups for debugging
+  static const int playerGroup = 0x01;
+  static const int obstacleGroup = 0x02;
+  static const int collectibleGroup = 0x04;
 }

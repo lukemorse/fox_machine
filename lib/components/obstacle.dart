@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui' show Paint;
 
 import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
@@ -41,31 +42,28 @@ class Obstacle extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Create hitbox based on obstacle type
+    // Create a simple hitbox based on obstacle type
     ShapeHitbox hitbox;
     switch (type) {
       case ObstacleType.tree:
-        // Tall, thin hitbox for trees
+        // Simple tall rectangle for trees
         hitbox = RectangleHitbox(
           size: Vector2(30, 70),
-          position: Vector2(0, -35), // Move up from bottom center
-          anchor: Anchor.bottomCenter,
+          position: Vector2(0, -35), // Positioned up from bottom
         );
         break;
       case ObstacleType.rock:
-        // Circular hitbox for rocks
+        // Simple circle for rocks
         hitbox = CircleHitbox(
           radius: 25,
-          position: Vector2(0, -25), // Move up from bottom center
-          anchor: Anchor.bottomCenter,
+          position: Vector2(0, -25), // Positioned up from bottom
         );
         break;
       case ObstacleType.river:
-        // Flat, wide hitbox for rivers
+        // Simple flat rectangle for rivers
         hitbox = RectangleHitbox(
           size: Vector2(60, 15),
-          position: Vector2(0, -7.5), // Move up from bottom center
-          anchor: Anchor.bottomCenter,
+          position: Vector2(0, -7.5), // Positioned up from bottom
         );
         break;
     }

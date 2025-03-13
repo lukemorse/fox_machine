@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
+import 'package:flutter/material.dart' show Colors;
+import 'dart:ui' show Paint;
 
 import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
@@ -31,6 +33,9 @@ class Player extends PositionComponent
   // Rive animation components
   late RiveComponent normalFoxAnimation;
 
+  // Reference to the hitbox for dynamic adjustments
+  late RectangleHitbox hitbox;
+
   Player({required this.groundLevel}) : super(size: Vector2(200, 200));
 
   @override
@@ -41,11 +46,11 @@ class Player extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Add hitbox for collision detection - make it smaller and positioned correctly
-    final hitbox = RectangleHitbox(
-      size: Vector2(size.x * 0.5, size.y * 0.7), // Make hitbox smaller
-      position: Vector2(size.x * 0.25, 0), // Position it at the bottom center
-      anchor: Anchor.bottomCenter, // Anchor at bottom center to match player
+    // Simple rectangular hitbox - 80% of the width, 70% of the height
+    hitbox = RectangleHitbox(
+      size: Vector2(size.x * 0.8, size.y * 0.7),
+      // Position it to be centered horizontally and at the top portion of the player
+      position: Vector2(0, -size.y * 0.7),
     )..debugMode = GameConstants.debug;
     add(hitbox);
 
@@ -111,6 +116,9 @@ class Player extends PositionComponent
         // Example: normalFoxAnimation.triggerAnimation('run');
       });
     }
+
+    // Adjust hitbox based on current state
+    _adjustHitbox();
   }
 
   void jump() {
@@ -240,45 +248,51 @@ class Player extends PositionComponent
   }
 
   @override
-  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
-    super.onCollision(intersectionPoints, other);
+  void onCollisionStart(
+      Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
 
+    if (GameConstants.debug && GameConstants.debugCollisions) {
+      print('COLLISION: Player with ${other.runtimeType}');
+    }
+
+    // Simple collision logic
     if (other is Obstacle) {
-      // The collision system will only call this if the hitboxes are actually overlapping
+      // Very simple jump check - if player is jumping and high enough, ignore collision
+      if (isJumping && position.y < groundLevel - 50) {
+        // Simple check - if we're significantly above ground level, we're jumping over
+        if (GameConstants.debug && GameConstants.debugCollisions) {
+          print('Ignoring obstacle - player is jumping high');
+        }
+        return;
+      }
+
       if (!isRobotForm) {
-        // Game over if hit obstacle in normal form
+        // Game over
         gameRef.gameOver();
-
-        // TODO: Play collision sound effect
-        // Example: FlameAudio.play('collision.mp3');
-
-        // TODO: Trigger hurt animation in Rive
-        // Example: normalFoxAnimation.triggerAnimation('hurt');
       } else {
-        // In robot form, destroy the obstacle instead
+        // Destroy obstacle
         other.removeFromParent();
-
-        // TODO: Play obstacle destruction sound effect
-        // Example: FlameAudio.play('destroy.mp3');
-
-        // TODO: Trigger smash animation in Rive
-        // Example: robotFoxAnimation.triggerAnimation('smash');
       }
     } else if (other is Collectible) {
-      // Handle collectible pickup
+      // Collect item
       other.collect();
-
-      // TODO: Play pickup sound based on collectible type
-      // Example:
-      // if (other.type == CollectibleType.berry) {
-      //   FlameAudio.play('collect_berry.mp3');
-      // } else if (other.type == CollectibleType.crystal) {
-      //   FlameAudio.play('collect_crystal.mp3');
-      // }
 
       if (other.type == CollectibleType.crystal) {
         gameRef.toggleRobotForm();
       }
+    }
+  }
+
+  // Method to adjust hitbox position for better collision detection
+  void _adjustHitbox() {
+    // Very simple adjustment - make hitbox flat when sliding
+    if (isSliding) {
+      hitbox.size = Vector2(size.x * 0.8, size.y * 0.4);
+      hitbox.position = Vector2(0, -size.y * 0.4);
+    } else {
+      hitbox.size = Vector2(size.x * 0.8, size.y * 0.7);
+      hitbox.position = Vector2(0, -size.y * 0.7);
     }
   }
 }

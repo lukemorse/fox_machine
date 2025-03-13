@@ -54,10 +54,9 @@ class Collectible extends PositionComponent
     // Set anchor to center
     anchor = Anchor.center;
 
-    // Add hitbox for collision detection
+    // Add a simple circular hitbox
     add(CircleHitbox(
-      radius: size.x / 2,
-      anchor: anchor,
+      radius: 15, // Fixed size (half the component size)
     )..debugMode = GameConstants.debug);
 
     // Create different shapes based on collectible type (placeholders)
