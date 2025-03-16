@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
+import 'package:fox_machine/constants/game_constants.dart';
 
 import '../game/fox_machine_game.dart';
 import 'obstacle.dart';
@@ -88,7 +89,7 @@ class Player extends PositionComponent
       position:
           Vector2(100, 100), // Center it in the Rive component's rectangle
       anchor: Anchor.center, // Use center anchor for the hitbox
-    );
+    )..debugMode = GameConstants.debug;
     add(hitbox);
 
     return super.onLoad();

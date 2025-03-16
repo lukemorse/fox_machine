@@ -24,7 +24,7 @@ void main() async {
   );
 
   // Debug settings - change to true for debugging visuals
-  GameConstants.debug = false;
+  GameConstants.debug = true;
   // For detailed collision logs
   // GameConstants.debugCollisions = false;
 
