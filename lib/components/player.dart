@@ -1,8 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
-import 'package:flutter/material.dart' show Colors;
-import 'dart:ui' show Paint, PaintingStyle;
 
 import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
@@ -47,18 +45,6 @@ class Player extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Add debug rectangle to visualize full component size (blue)
-    if (GameConstants.debug) {
-      final playerDebugRect = RectangleComponent(
-        size: size,
-        paint: Paint()
-          ..color = Colors.blue.withOpacity(0.1) // Make it very transparent
-          ..style = PaintingStyle.fill,
-      );
-      playerDebugRect.anchor = anchor;
-      add(playerDebugRect);
-    }
-
     // Load Rive animation
     final artboard = await loadArtboard(RiveFile.asset('assets/rive/fox.riv'));
     normalFoxAnimation = RiveComponent(
@@ -66,17 +52,6 @@ class Player extends PositionComponent
       size: size,
       position: Vector2(0, 0),
     );
-
-    // Add debug rectangle to visualize Rive component (red)
-    if (GameConstants.debug) {
-      final riveDebugRect = RectangleComponent(
-        size: normalFoxAnimation.size,
-        paint: Paint()
-          ..color = Colors.red.withOpacity(0.3)
-          ..style = PaintingStyle.fill,
-      );
-      normalFoxAnimation.add(riveDebugRect);
-    }
 
     // Add the normal fox animation
     add(normalFoxAnimation);
@@ -93,9 +68,9 @@ class Player extends PositionComponent
     hitbox = RectangleHitbox(
       size: Vector2(80, 100), // Fixed size based on character
       position:
-          Vector2(100, 100), // Center it in the Rive component's red rectangle
+          Vector2(100, 100), // Center it in the Rive component's rectangle
       anchor: Anchor.center, // Use center anchor for the hitbox
-    )..debugMode = GameConstants.debug;
+    );
     add(hitbox);
 
     return super.onLoad();
@@ -117,12 +92,6 @@ class Player extends PositionComponent
         position.y = groundLevel;
         isJumping = false;
         yVelocity = 0;
-
-        // TODO: Play landing sound effect
-        // Example: FlameAudio.play('land.mp3');
-
-        // TODO: Trigger landing animation in Rive
-        // Example: normalFoxAnimation.triggerAnimation('land');
       }
     }
   }
@@ -132,24 +101,12 @@ class Player extends PositionComponent
       isJumping = true;
       isJumpReleased = false;
       yVelocity = jumpSpeed;
-
-      // TODO: Play jump sound effect
-      // Example: FlameAudio.play('jump.mp3');
-
-      // TODO: Trigger jump animation in Rive
-      // Example: normalFoxAnimation.triggerAnimation('jump');
     }
   }
 
   void slide() {
     if (!isSliding && !isJumping) {
       isSliding = true;
-
-      // TODO: Play slide sound effect
-      // Example: FlameAudio.play('slide.mp3');
-
-      // TODO: Trigger slide animation in Rive
-      // Example: normalFoxAnimation.triggerAnimation('slide');
     }
   }
 
@@ -165,15 +122,6 @@ class Player extends PositionComponent
       jumpSpeed = -1100;
       maxJumpSpeed = -1500;
       minJumpSpeed = -1100;
-
-      // TODO: Play transformation sound effect
-      // Example: FlameAudio.play('transform.mp3');
-
-      // TODO: Add transformation visual effect and swap Rive animations
-      // Example:
-      // normalFoxAnimation.removeFromParent();
-      // add(robotFoxAnimation);
-      // add(TransformationEffect());
     } else {
       // Switch back to normal form
       // TODO: Add normal form animation back
@@ -182,15 +130,6 @@ class Player extends PositionComponent
       jumpSpeed = -900;
       maxJumpSpeed = -1300;
       minJumpSpeed = -900;
-
-      // TODO: Play transformation sound effect
-      // Example: FlameAudio.play('transform_back.mp3');
-
-      // TODO: Add transformation visual effect and swap Rive animations
-      // Example:
-      // robotFoxAnimation.removeFromParent();
-      // add(normalFoxAnimation);
-      // add(TransformationEffect());
     }
   }
 
@@ -225,17 +164,6 @@ class Player extends PositionComponent
         // Reset position to default
         position: Vector2(0, 0),
       );
-
-      // Add debug rectangle to visualize Rive component (red)
-      if (GameConstants.debug) {
-        final riveDebugRect = RectangleComponent(
-          size: normalFoxAnimation.size,
-          paint: Paint()
-            ..color = Colors.red.withOpacity(0.3)
-            ..style = PaintingStyle.fill,
-        );
-        normalFoxAnimation.add(riveDebugRect);
-      }
 
       // Add the normal fox animation
       add(normalFoxAnimation);
