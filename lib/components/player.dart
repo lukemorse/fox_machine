@@ -10,6 +10,7 @@ import 'obstacle.dart';
 import 'collectible.dart';
 import '../models/game_state.dart';
 
+/// The player character component
 class Player extends PositionComponent
     with CollisionCallbacks, HasGameRef<FoxMachineGame> {
   // Movement variables
@@ -247,7 +248,7 @@ class Player extends PositionComponent
       artboard.addController(controller!);
       controller.findInput<double>('walk')!.value = 2;
     } catch (e) {
-      print('Error resetting animation: $e');
+      // Silent fail - don't interrupt gameplay
     }
   }
 
@@ -270,10 +271,6 @@ class Player extends PositionComponent
       Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
 
-    if (GameConstants.debug && GameConstants.debugCollisions) {
-      print('COLLISION: Player with ${other.runtimeType}');
-    }
-
     // Simple collision logic
     if (other is Obstacle) {
       if (!isRobotForm) {
@@ -290,20 +287,6 @@ class Player extends PositionComponent
       if (other.type == CollectibleType.crystal) {
         gameRef.toggleRobotForm();
       }
-    }
-  }
-
-  // Method to adjust hitbox position for better collision detection
-  void _adjustHitbox() {
-    // Very simple adjustment - make hitbox flat when sliding
-    if (isSliding) {
-      hitbox.size = Vector2(80, 50); // Flatter when sliding
-      hitbox.position =
-          Vector2(100, 150); // Lower when sliding, still centered horizontally
-    } else {
-      hitbox.size = Vector2(80, 100); // Normal size
-      hitbox.position =
-          Vector2(100, 100); // Center it in the Rive component's rectangle
     }
   }
 }

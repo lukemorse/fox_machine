@@ -10,143 +10,10 @@ import '../components/collectible.dart';
 import '../components/background.dart';
 import '../constants/game_constants.dart';
 import '../models/game_state.dart';
+import '../widgets/hud_overlay.dart';
+import '../widgets/game_over_overlay.dart';
 
-// Define the HUD overlay widget
-class HUDOverlay extends StatelessWidget {
-  final FoxMachineGame game;
-
-  const HUDOverlay({super.key, required this.game});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Score display
-          Text(
-            'Score: ${game.score.toInt()}',
-            style: const TextStyle(
-              fontSize: 24,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  blurRadius: 2.0,
-                  color: Colors.black,
-                  offset: Offset(1.0, 1.0),
-                ),
-              ],
-              decoration: TextDecoration.none,
-            ),
-          ),
-
-          // Robot mode indicator
-          game.isRobotForm
-              ? const Text(
-                  'ROBOT MODE',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 2.0,
-                        color: Colors.black,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                    decoration: TextDecoration.none,
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ],
-      ),
-    );
-  }
-}
-
-// Define the game over overlay widget
-class GameOverOverlay extends StatelessWidget {
-  final Function onMainMenuPressed;
-  final Function onRestartPressed;
-  final int score;
-
-  const GameOverOverlay({
-    super.key,
-    required this.onMainMenuPressed,
-    required this.onRestartPressed,
-    required this.score,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Game Over',
-              style: TextStyle(
-                fontSize: 30,
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.none,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Score: $score',
-              style: const TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-                decoration: TextDecoration.none,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                  onPressed: () => onRestartPressed(),
-                  child: const Text(
-                    'Play Again',
-                    style: TextStyle(
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                  ),
-                  onPressed: () => onMainMenuPressed(),
-                  child: const Text(
-                    'Main Menu',
-                    style: TextStyle(
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+/// Main game class that handles game logic and state
 class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   // Optional callback for navigating back to main menu
   Function? onMainMenuPressed;
@@ -248,8 +115,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     // Clean up any potential duplicate player instances first
     final existingPlayers = gameWorld.children.whereType<Player>().toList();
     if (existingPlayers.isNotEmpty) {
-      print(
-          'Found ${existingPlayers.length} player(s) during game initialization');
       // Keep only the first one if multiple
       if (existingPlayers.length > 1) {
         for (int i = 1; i < existingPlayers.length; i++) {
@@ -261,7 +126,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       _playerInitialized = true;
     } else {
       // No player exists, create a new one
-      print("Creating new player in onLoad");
       _player = Player(groundLevel: groundLevel);
       gameWorld.add(_player!);
       _playerInitialized = true;
@@ -386,9 +250,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     speedMultiplier = isRobotForm
         ? GameConstants.robotSpeedMultiplier
         : GameConstants.normalSpeedMultiplier;
-
-    // TODO: Play transformation sound effect
-    // Example: FlameAudio.play('transform.mp3');
   }
 
   void gameOver() {
@@ -401,10 +262,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     // Add the game over overlay
     overlays.add('gameOver');
-
-    // TODO: Play game over sound effect
-    // Example: FlameAudio.play('game_over.mp3');
-    // TODO: Stop or change background music
   }
 
   void reset({bool skipPlayerReset = false}) {
@@ -431,8 +288,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       // Clean up any potential duplicate player instances
       final existingPlayers = gameWorld.children.whereType<Player>().toList();
       if (existingPlayers.length > 1) {
-        print(
-            'WARNING: Found ${existingPlayers.length} players in game world. Cleaning up duplicates.');
         // Keep only the first player
         for (int i = 1; i < existingPlayers.length; i++) {
           existingPlayers[i].removeFromParent();
@@ -444,7 +299,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       // Check if player exists
       if (existingPlayers.isEmpty) {
         // No player exists, create a new one
-        print("Creating new player in reset");
         _player = Player(groundLevel: groundLevel);
         gameWorld.add(_player!);
         _playerInitialized = true;
@@ -457,10 +311,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       // Just reset the player state without recreating
       _player!.reset();
     }
-
-    // TODO: Play game start sound effect
-    // Example: FlameAudio.play('game_start.mp3');
-    // TODO: Start or restart background music
   }
 
   // This method can be called safely from the overlays after the game is initialized
@@ -476,31 +326,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   void pause() {
     gameState = GameState.paused;
-
-    // TODO: Pause background music
-    // Example: FlameAudio.bgm.pause();
   }
 
   void resume() {
     gameState = GameState.playing;
-
-    // TODO: Resume background music
-    // Example: FlameAudio.bgm.resume();
-  }
-
-  // Helper method to convert design coordinates to actual screen coordinates
-  Vector2 getScaledPosition(Vector2 designPosition) {
-    return Vector2(
-      designPosition.x * scaleX,
-      designPosition.y * scaleY,
-    );
-  }
-
-  // Helper method to convert actual screen coordinates to design coordinates
-  Vector2 getDesignPosition(Vector2 actualPosition) {
-    return Vector2(
-      actualPosition.x / scaleX,
-      actualPosition.y / scaleY,
-    );
   }
 }

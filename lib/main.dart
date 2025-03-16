@@ -23,10 +23,10 @@ void main() async {
     SystemUiMode.immersiveSticky,
   );
 
-  // Enable debug mode here during development
-  GameConstants.debug = true;
-  // Uncomment to see detailed collision logs
-  // GameConstants.debugCollisions = true;
+  // Debug settings - change to true for debugging visuals
+  GameConstants.debug = false;
+  // For detailed collision logs
+  // GameConstants.debugCollisions = false;
 
   runApp(const MyApp());
 }
