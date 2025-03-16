@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart' show Colors;
-import 'dart:ui' show Paint;
+import 'dart:ui' show Paint, PaintingStyle;
 
 import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
@@ -46,20 +46,36 @@ class Player extends PositionComponent
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
 
-    // Simple rectangular hitbox - 80% of the width, 70% of the height
-    hitbox = RectangleHitbox(
-      size: Vector2(size.x * 0.8, size.y * 0.7),
-      // Position it to be centered horizontally and at the top portion of the player
-      position: Vector2(0, -size.y * 0.7),
-    )..debugMode = GameConstants.debug;
-    add(hitbox);
+    // Add debug rectangle to visualize full component size (blue)
+    if (GameConstants.debug) {
+      final playerDebugRect = RectangleComponent(
+        size: size,
+        paint: Paint()
+          ..color = Colors.blue.withOpacity(0.1) // Make it very transparent
+          ..style = PaintingStyle.fill,
+      );
+      playerDebugRect.anchor = anchor;
+      add(playerDebugRect);
+    }
 
     // Load Rive animation
     final artboard = await loadArtboard(RiveFile.asset('assets/rive/fox.riv'));
     normalFoxAnimation = RiveComponent(
       artboard: artboard,
       size: size,
+      position: Vector2(0, 0),
     );
+
+    // Add debug rectangle to visualize Rive component (red)
+    if (GameConstants.debug) {
+      final riveDebugRect = RectangleComponent(
+        size: normalFoxAnimation.size,
+        paint: Paint()
+          ..color = Colors.red.withOpacity(0.3)
+          ..style = PaintingStyle.fill,
+      );
+      normalFoxAnimation.add(riveDebugRect);
+    }
 
     // Add the normal fox animation
     add(normalFoxAnimation);
@@ -72,10 +88,14 @@ class Player extends PositionComponent
     artboard.addController(controller!);
     controller.findInput<double>('walk')!.value = 2;
 
-    // TODO: Add inputs for jumping and falling states
-    // Example:
-    // controller.findInput<bool>('jump')!.value = false;
-    // controller.findInput<bool>('fall')!.value = false;
+    // Simple rectangular hitbox centered on the character
+    hitbox = RectangleHitbox(
+      size: Vector2(80, 100), // Fixed size based on character
+      position:
+          Vector2(100, 100), // Center it in the Rive component's red rectangle
+      anchor: Anchor.center, // Use center anchor for the hitbox
+    )..debugMode = GameConstants.debug;
+    add(hitbox);
 
     return super.onLoad();
   }
@@ -83,6 +103,7 @@ class Player extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
+    print('Player position: ${position}');
 
     if (gameRef.gameState != GameState.playing) return;
 
@@ -104,21 +125,6 @@ class Player extends PositionComponent
         // Example: normalFoxAnimation.triggerAnimation('land');
       }
     }
-
-    // Reset sliding state after some time
-    if (isSliding) {
-      // In a real implementation, we would handle sliding animation timing
-      // For placeholder, we'll just reset after a short time
-      Future.delayed(const Duration(milliseconds: 500), () {
-        isSliding = false;
-
-        // TODO: Return to running animation in Rive when slide completes
-        // Example: normalFoxAnimation.triggerAnimation('run');
-      });
-    }
-
-    // Adjust hitbox based on current state
-    _adjustHitbox();
   }
 
   void jump() {
@@ -216,7 +222,20 @@ class Player extends PositionComponent
       normalFoxAnimation = RiveComponent(
         artboard: artboard,
         size: size,
+        // Reset position to default
+        position: Vector2(0, 0),
       );
+
+      // Add debug rectangle to visualize Rive component (red)
+      if (GameConstants.debug) {
+        final riveDebugRect = RectangleComponent(
+          size: normalFoxAnimation.size,
+          paint: Paint()
+            ..color = Colors.red.withOpacity(0.3)
+            ..style = PaintingStyle.fill,
+        );
+        normalFoxAnimation.add(riveDebugRect);
+      }
 
       // Add the normal fox animation
       add(normalFoxAnimation);
@@ -258,15 +277,6 @@ class Player extends PositionComponent
 
     // Simple collision logic
     if (other is Obstacle) {
-      // Very simple jump check - if player is jumping and high enough, ignore collision
-      if (isJumping && position.y < groundLevel - 50) {
-        // Simple check - if we're significantly above ground level, we're jumping over
-        if (GameConstants.debug && GameConstants.debugCollisions) {
-          print('Ignoring obstacle - player is jumping high');
-        }
-        return;
-      }
-
       if (!isRobotForm) {
         // Game over
         gameRef.gameOver();
@@ -288,11 +298,13 @@ class Player extends PositionComponent
   void _adjustHitbox() {
     // Very simple adjustment - make hitbox flat when sliding
     if (isSliding) {
-      hitbox.size = Vector2(size.x * 0.8, size.y * 0.4);
-      hitbox.position = Vector2(0, -size.y * 0.4);
+      hitbox.size = Vector2(80, 50); // Flatter when sliding
+      hitbox.position =
+          Vector2(100, 150); // Lower when sliding, still centered horizontally
     } else {
-      hitbox.size = Vector2(size.x * 0.8, size.y * 0.7);
-      hitbox.position = Vector2(0, -size.y * 0.7);
+      hitbox.size = Vector2(80, 100); // Normal size
+      hitbox.position =
+          Vector2(100, 100); // Center it in the Rive component's rectangle
     }
   }
 }
