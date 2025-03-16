@@ -17,12 +17,25 @@ class Collectible extends PositionComponent
   bool isCollected = false;
   final double groundLevel;
 
+  // Track height offset from ground level
+  final double _heightOffset;
+
   // TODO: Replace shape component with Rive animations
   // Example:
   // late RiveComponent animation;
 
   Collectible({required this.type, required this.groundLevel})
-      : super(size: Vector2(30, 30));
+      : _heightOffset = _generateHeightOffset(),
+        super(size: Vector2(30, 30));
+
+  // Generate a random height offset based on collectible type
+  static double _generateHeightOffset() {
+    final random = Random();
+
+    // Generate a random height based on a normal-like distribution
+    // centered about 100px above ground
+    return 50.0 + random.nextDouble() * 100.0;
+  }
 
   static Collectible random({required double groundLevel}) {
     final random = Random();
@@ -44,11 +57,10 @@ class Collectible extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    // Position at the right edge of the screen at a random height
-    final random = Random();
+    // Position at the right edge of the screen
     position = Vector2(
       FoxMachineGame.designResolutionWidth + size.x,
-      groundLevel - random.nextDouble() * 200, // Vary height
+      groundLevel - _heightOffset, // Float above ground level
     );
 
     // Set anchor to center
@@ -126,6 +138,14 @@ class Collectible extends PositionComponent
 
     // Move collectible towards player
     position.x -= gameRef.gameSpeed * gameRef.speedMultiplier * dt;
+
+    // Update y-position to follow the dynamic ground level while maintaining height offset
+    position.y = gameRef.getGroundLevelAt(position.x) - _heightOffset;
+
+    // Add a gentle floating animation for visual appeal
+    final floatOffset =
+        sin(gameRef.distanceTraveled / 100 + position.x / 50) * 5;
+    position.y += floatOffset;
 
     // Remove if off screen
     if (position.x < -size.x) {

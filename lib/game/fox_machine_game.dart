@@ -44,7 +44,34 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       Vector2(designResolutionWidth, designResolutionHeight);
 
   // Ground level position
-  late double groundLevel;
+  late double baseGroundLevel;
+
+  // Ground level generation parameters
+  double _groundAmplitude = 30.0; // Height of terrain variations
+  double _groundWavelength = 800.0; // Length of terrain wave
+  double _groundOffset = 0.0; // Scrolls with the game
+
+  // Seed for terrain generation
+  final int _terrainSeed = DateTime.now().millisecondsSinceEpoch;
+
+  // Get the ground level at a specific x position
+  double getGroundLevelAt(double x) {
+    // Create a smooth terrain using sine waves for simplicity
+    // We can replace this with more complex algorithms like Perlin noise later
+    final position = x + _groundOffset;
+
+    // Primary wave - large rolling hills
+    final primaryWave =
+        math.sin(position / _groundWavelength * 2 * math.pi) * _groundAmplitude;
+
+    // Secondary wave - smaller variations
+    final secondaryWave =
+        math.sin(position / (_groundWavelength / 3) * 2 * math.pi) *
+            (_groundAmplitude * 0.3);
+
+    // Combine waves and return
+    return baseGroundLevel + primaryWave + secondaryWave;
+  }
 
   // Scaling factors for different device sizes
   late double scaleX;
@@ -91,7 +118,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     gameCamera.viewfinder.anchor = Anchor.center;
 
     // Set ground level directly in constructor
-    groundLevel = designResolutionHeight * 0.85;
+    baseGroundLevel = designResolutionHeight * 0.85;
   }
 
   @override
@@ -126,7 +153,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       _playerInitialized = true;
     } else {
       // No player exists, create a new one
-      _player = Player(groundLevel: groundLevel);
+      _player = Player(baseGroundLevel: baseGroundLevel);
       gameWorld.add(_player!);
       _playerInitialized = true;
     }
@@ -170,6 +197,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     if (gameState != GameState.playing) return;
 
+    // Update terrain offset to make it scroll with game
+    _groundOffset += gameSpeed * speedMultiplier * dt;
+
     // Update score and distance
     score += dt * 10;
     distanceTraveled += dt * gameSpeed * speedMultiplier;
@@ -208,11 +238,19 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   void _spawnObstacle() {
+    // Get the ground level at spawn position
+    final spawnX = designResolutionWidth + 100; // Spawn off-screen
+    final groundLevel = getGroundLevelAt(spawnX);
+
     final obstacle = Obstacle.random(groundLevel: groundLevel);
     gameWorld.add(obstacle);
   }
 
   void _spawnCollectible() {
+    // Get the ground level at spawn position for proper placement
+    final spawnX = designResolutionWidth + 100; // Spawn off-screen
+    final groundLevel = getGroundLevelAt(spawnX);
+
     final collectible = Collectible.random(groundLevel: groundLevel);
     gameWorld.add(collectible);
   }
@@ -275,6 +313,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     tapHoldDuration = 0.0;
     currentJumpPower = 0.0;
 
+    // Reset terrain offset
+    _groundOffset = 0.0;
+
     // Remove all obstacles and collectibles
     gameWorld.children
         .whereType<Obstacle>()
@@ -299,7 +340,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       // Check if player exists
       if (existingPlayers.isEmpty) {
         // No player exists, create a new one
-        _player = Player(groundLevel: groundLevel);
+        _player = Player(baseGroundLevel: baseGroundLevel);
         gameWorld.add(_player!);
         _playerInitialized = true;
       } else {
@@ -330,5 +371,21 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   void resume() {
     gameState = GameState.playing;
+  }
+
+  // Helper method to convert design coordinates to actual screen coordinates
+  Vector2 getScaledPosition(Vector2 designPosition) {
+    return Vector2(
+      designPosition.x * scaleX,
+      designPosition.y * scaleY,
+    );
+  }
+
+  // Helper method to convert actual screen coordinates to design coordinates
+  Vector2 getDesignPosition(Vector2 actualPosition) {
+    return Vector2(
+      actualPosition.x / scaleX,
+      actualPosition.y / scaleY,
+    );
   }
 }

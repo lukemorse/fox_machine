@@ -3,7 +3,6 @@ import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
 
 import '../game/fox_machine_game.dart';
-import '../constants/game_constants.dart';
 import 'obstacle.dart';
 import 'collectible.dart';
 import '../models/game_state.dart';
@@ -26,8 +25,11 @@ class Player extends PositionComponent
   // Character state
   bool isRobotForm = false;
 
-  // Ground level (will be set during initialization)
-  final double groundLevel;
+  // Ground level (baseline will be set during initialization)
+  final double baseGroundLevel;
+
+  // Current ground level at player's position
+  double get currentGroundLevel => gameRef.getGroundLevelAt(position.x);
 
   // Rive animation components
   late RiveComponent normalFoxAnimation;
@@ -35,12 +37,13 @@ class Player extends PositionComponent
   // Reference to the hitbox for dynamic adjustments
   late RectangleHitbox hitbox;
 
-  Player({required this.groundLevel}) : super(size: Vector2(200, 200));
+  Player({required this.baseGroundLevel}) : super(size: Vector2(200, 200));
 
   @override
   Future<void> onLoad() async {
     // Set initial position - center horizontally, at ground level
-    position = Vector2(FoxMachineGame.designResolutionWidth / 4, groundLevel);
+    position =
+        Vector2(FoxMachineGame.designResolutionWidth / 4, baseGroundLevel);
 
     // Set anchor to bottom center
     anchor = Anchor.bottomCenter;
@@ -82,6 +85,9 @@ class Player extends PositionComponent
 
     if (gameRef.gameState != GameState.playing) return;
 
+    // Get current ground level at player's x position
+    final groundLevel = currentGroundLevel;
+
     // Apply gravity if jumping
     if (isJumping) {
       yVelocity += gravity * dt;
@@ -93,6 +99,9 @@ class Player extends PositionComponent
         isJumping = false;
         yVelocity = 0;
       }
+    } else {
+      // If not jumping, follow the ground level
+      position.y = groundLevel;
     }
   }
 
@@ -134,7 +143,7 @@ class Player extends PositionComponent
   }
 
   void reset() {
-    position.y = groundLevel;
+    position.y = currentGroundLevel;
     isJumping = false;
     isSliding = false;
     yVelocity = 0;

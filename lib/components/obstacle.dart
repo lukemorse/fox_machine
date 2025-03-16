@@ -16,6 +16,9 @@ class Obstacle extends PositionComponent
   late ShapeComponent shape;
   final double groundLevel;
 
+  // Current ground level at obstacle's position
+  double get currentGroundLevel => gameRef.getGroundLevelAt(position.x);
+
   // TODO: Replace shape component with Rive animations
   // Example:
   // late RiveComponent animation;
@@ -36,7 +39,7 @@ class Obstacle extends PositionComponent
     // Position at the right edge of the screen
     position = Vector2(
       FoxMachineGame.designResolutionWidth + size.x,
-      groundLevel, // Same level as player's ground level
+      groundLevel, // Initial ground level at spawn position
     );
 
     // Set anchor to bottom center
@@ -135,6 +138,9 @@ class Obstacle extends PositionComponent
 
     // Move obstacle towards player
     position.x -= gameRef.gameSpeed * gameRef.speedMultiplier * dt;
+
+    // Update y-position to follow the ground level
+    position.y = currentGroundLevel;
 
     // Remove if off screen
     if (position.x < -size.x) {
