@@ -47,8 +47,8 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   late double baseGroundLevel;
 
   // Ground level generation parameters
-  double _groundAmplitude = 30.0; // Height of terrain variations
-  double _groundWavelength = 800.0; // Length of terrain wave
+  double _groundAmplitude = 40.0; // Height of terrain variations (increased)
+  double _groundWavelength = 1200.0; // Length of terrain wave (increased)
   double _groundOffset = 0.0; // Scrolls with the game
 
   // Seed for terrain generation
@@ -66,11 +66,16 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     // Secondary wave - smaller variations
     final secondaryWave =
-        math.sin(position / (_groundWavelength / 3) * 2 * math.pi) *
+        math.sin(position / (_groundWavelength / 5) * 2 * math.pi) *
             (_groundAmplitude * 0.3);
 
+    // Tertiary wave - tiny variations
+    final tertiaryWave =
+        math.sin(position / (_groundWavelength / 20) * 2 * math.pi) *
+            (_groundAmplitude * 0.1);
+
     // Combine waves and return
-    return baseGroundLevel + primaryWave + secondaryWave;
+    return baseGroundLevel + primaryWave + secondaryWave + tertiaryWave;
   }
 
   // Scaling factors for different device sizes
