@@ -31,11 +31,9 @@ class _GameNavigatorState extends State<GameNavigator> {
 
   void _goToGame() {
     setState(() {
-      // Make sure game is properly reset before showing it
-      _game.reset();
+      // Don't call reset here - the game will reset itself properly in onLoad
+      // This prevents the double initialization problem
       _showingGame = true;
-
-      // Don't manipulate overlays directly here - let GameWidget handle it
     });
   }
 

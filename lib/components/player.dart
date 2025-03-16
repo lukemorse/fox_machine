@@ -103,7 +103,6 @@ class Player extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    print('Player position: ${position}');
 
     if (gameRef.gameState != GameState.playing) return;
 

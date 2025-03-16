@@ -164,12 +164,15 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   // For variable jump height
   bool isTapHeld = false;
   double tapHoldDuration = 0.0;
-  double maxJumpHoldTime = GameConstants.maxJumpHoldTime; // Maximum time to hold for highest jump (in seconds)
+  double maxJumpHoldTime = GameConstants
+      .maxJumpHoldTime; // Maximum time to hold for highest jump (in seconds)
   double currentJumpPower = 0.0;
 
   // Viewport and scaling - using static constants so they can be accessed from components
-  static const double designResolutionWidth = GameConstants.designResolutionWidth;
-  static const double designResolutionHeight = GameConstants.designResolutionHeight;
+  static const double designResolutionWidth =
+      GameConstants.designResolutionWidth;
+  static const double designResolutionHeight =
+      GameConstants.designResolutionHeight;
   static final Vector2 designResolution =
       Vector2(designResolutionWidth, designResolutionHeight);
 
@@ -183,21 +186,23 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   // Components
   Player? _player; // Private nullable player reference
   late BackgroundComponent background;
+  bool _playerInitialized = false; // Track if player has been initialized
 
   // Player accessor with null safety
   Player get player {
     if (_player == null) {
-      _player = Player(groundLevel: groundLevel);
-      gameWorld.add(_player!);
+      throw StateError('Player accessed before initialization');
     }
     return _player!;
   }
 
   // For obstacle and collectible generation
-  final double obstacleSpawnRate = GameConstants.obstacleSpawnRate; // in seconds
+  final double obstacleSpawnRate =
+      GameConstants.obstacleSpawnRate; // in seconds
   double timeSinceLastObstacle = 0;
 
-  final double collectibleSpawnRate = GameConstants.collectibleSpawnRate; // in seconds
+  final double collectibleSpawnRate =
+      GameConstants.collectibleSpawnRate; // in seconds
   double timeSinceLastCollectible = 0;
 
   // Camera setup
@@ -236,16 +241,37 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     gameCamera.viewfinder.position =
         Vector2(designResolutionWidth / 2, designResolutionHeight / 2);
 
-    // TODO: Initialize background music here using flame_audio
-    // Example: FlameAudio.bgm.play('background_music.mp3');
-
     // Add background
     background = await BackgroundComponent.create();
     gameWorld.add(background);
 
-    // Initialize player
-    _player = Player(groundLevel: groundLevel);
-    gameWorld.add(_player!);
+    // Clean up any potential duplicate player instances first
+    final existingPlayers = gameWorld.children.whereType<Player>().toList();
+    if (existingPlayers.isNotEmpty) {
+      print(
+          'Found ${existingPlayers.length} player(s) during game initialization');
+      // Keep only the first one if multiple
+      if (existingPlayers.length > 1) {
+        for (int i = 1; i < existingPlayers.length; i++) {
+          existingPlayers[i].removeFromParent();
+        }
+      }
+      // Set our reference to the existing player
+      _player = existingPlayers[0];
+      _playerInitialized = true;
+    } else {
+      // No player exists, create a new one
+      print("Creating new player in onLoad");
+      _player = Player(groundLevel: groundLevel);
+      gameWorld.add(_player!);
+      _playerInitialized = true;
+    }
+
+    // Reset the game state
+    reset(skipPlayerReset: true);
+
+    // Start with the hud overlay
+    overlays.add('hud');
 
     return super.onLoad();
   }
@@ -357,7 +383,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   void toggleRobotForm() {
     isRobotForm = !isRobotForm;
     player.toggleRobotForm(isRobotForm);
-    speedMultiplier = isRobotForm ? GameConstants.robotSpeedMultiplier : GameConstants.normalSpeedMultiplier;
+    speedMultiplier = isRobotForm
+        ? GameConstants.robotSpeedMultiplier
+        : GameConstants.normalSpeedMultiplier;
 
     // TODO: Play transformation sound effect
     // Example: FlameAudio.play('transform.mp3');
@@ -379,7 +407,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     // TODO: Stop or change background music
   }
 
-  void reset() {
+  void reset({bool skipPlayerReset = false}) {
     gameState = GameState.playing;
     score = 0;
     distanceTraveled = 0;
@@ -398,13 +426,35 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
         .whereType<Collectible>()
         .forEach((collectible) => collectible.removeFromParent());
 
-    // Check if player exists in the game world
-    if (gameWorld.children.whereType<Player>().isEmpty) {
-      // Player doesn't exist, create a new one
-      _player = Player(groundLevel: groundLevel);
-      gameWorld.add(_player!);
+    // Skip player handling if we're being called from onLoad
+    if (!skipPlayerReset) {
+      // Clean up any potential duplicate player instances
+      final existingPlayers = gameWorld.children.whereType<Player>().toList();
+      if (existingPlayers.length > 1) {
+        print(
+            'WARNING: Found ${existingPlayers.length} players in game world. Cleaning up duplicates.');
+        // Keep only the first player
+        for (int i = 1; i < existingPlayers.length; i++) {
+          existingPlayers[i].removeFromParent();
+        }
+        // Update our reference to the remaining player
+        _player = existingPlayers[0];
+      }
+
+      // Check if player exists
+      if (existingPlayers.isEmpty) {
+        // No player exists, create a new one
+        print("Creating new player in reset");
+        _player = Player(groundLevel: groundLevel);
+        gameWorld.add(_player!);
+        _playerInitialized = true;
+      } else {
+        // Update reference to first player and reset it
+        _player = existingPlayers[0];
+        _player!.reset();
+      }
     } else if (_player != null) {
-      // Player exists, just reset it
+      // Just reset the player state without recreating
       _player!.reset();
     }
 
