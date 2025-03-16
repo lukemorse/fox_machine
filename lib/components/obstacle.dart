@@ -148,6 +148,11 @@ class Obstacle extends PositionComponent
     }
   }
 
+  // Hide the obstacle (used when exploding)
+  void hide() {
+    shape.removeFromParent();
+  }
+
   // TODO: Add destroy animation method
   // void playDestroyAnimation() {
   //   // Example:

@@ -1,11 +1,13 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
+import 'package:flutter/material.dart';
 
 import '../game/fox_machine_game.dart';
 import 'obstacle.dart';
 import 'collectible.dart';
 import '../models/game_state.dart';
+import 'particle_explosion.dart';
 
 /// The player character component
 class Player extends PositionComponent
@@ -24,6 +26,19 @@ class Player extends PositionComponent
 
   // Character state
   bool isRobotForm = false;
+
+  // Visual properties
+  double _opacity = 1.0;
+
+  // Getter and setter for opacity
+  double get opacity => _opacity;
+  set opacity(double value) {
+    _opacity = value;
+    // When opacity is zero, make invisible
+    if (value <= 0) {
+      normalFoxAnimation.removeFromParent();
+    }
+  }
 
   // Ground level (baseline will be set during initialization)
   final double baseGroundLevel;
@@ -148,6 +163,7 @@ class Player extends PositionComponent
     isSliding = false;
     yVelocity = 0;
     isJumpReleased = true;
+    _opacity = 1.0; // Reset opacity
 
     // Reset to normal form
     if (isRobotForm) {
@@ -211,11 +227,50 @@ class Player extends PositionComponent
     // Simple collision logic
     if (other is Obstacle) {
       if (!isRobotForm) {
-        // Game over
-        gameRef.gameOver();
+        // Create big explosion at player position with game over effect
+        ParticleExplosion.createBigExplosion(
+          position: position.clone(),
+          world: gameRef.gameWorld,
+          baseColor: Colors.red,
+          size: 30.0,
+          isGameOver: true, // Enable dramatic game over explosion
+        );
+
+        // Create explosion at obstacle position with game over effect
+        ParticleExplosion.createBigExplosion(
+          position: other.position.clone(),
+          world: gameRef.gameWorld,
+          baseColor: Colors.orange,
+          size: 25.0,
+          isGameOver: true, // Enable dramatic game over explosion
+        );
+
+        // Hide player and obstacle after a tiny delay to ensure particles appear
+        Future.delayed(const Duration(milliseconds: 50), () {
+          opacity = 0;
+          other.hide();
+        });
+
+        // Delay game over to let player see the explosion
+        Future.delayed(const Duration(milliseconds: 600), () {
+          // Game over
+          gameRef.gameOver();
+        });
       } else {
-        // Destroy obstacle
-        other.removeFromParent();
+        // In robot form, create a smaller explosion at obstacle (not game over)
+        ParticleExplosion.createBigExplosion(
+          position: other.position.clone(),
+          world: gameRef.gameWorld,
+          baseColor: Colors.blue,
+          size: 20.0,
+          isGameOver: false, // Regular explosion, not game over
+        );
+
+        // Then hide and destroy obstacle
+        Future.delayed(const Duration(milliseconds: 50), () {
+          other.hide();
+          other.removeFromParent();
+        });
       }
     } else if (other is Collectible) {
       // Collect item

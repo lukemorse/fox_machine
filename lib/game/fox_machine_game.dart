@@ -303,8 +303,11 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       overlays.remove('hud');
     }
 
-    // Add the game over overlay
-    overlays.add('gameOver');
+    // Add the game over overlay after a longer delay to let all particles display
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      // Add the game over overlay
+      overlays.add('gameOver');
+    });
   }
 
   void reset({bool skipPlayerReset = false}) {
