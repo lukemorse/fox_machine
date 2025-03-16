@@ -111,7 +111,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
 
               // Instructions
               const Text(
-                'Tap and hold to jump higher',
+                'PART FOX, PART MACHINE',
                 style: TextStyle(
                   fontSize: 24,
                   color: Colors.white70,
