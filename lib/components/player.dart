@@ -13,6 +13,7 @@ import 'particle_explosion.dart';
 /// The player character component
 class Player extends PositionComponent
     with CollisionCallbacks, HasGameRef<FoxMachineGame> {
+  StateMachineController? controller;
   // Movement variables
   double gravity = 1500;
   double jumpSpeed = -900;
@@ -76,12 +77,12 @@ class Player extends PositionComponent
     add(normalFoxAnimation);
 
     // Set initial animation state to walking
-    final controller = StateMachineController.fromArtboard(
+    controller = StateMachineController.fromArtboard(
       artboard,
       'State Machine 1',
     );
     artboard.addController(controller!);
-    controller.findInput<double>('walk')!.value = 2;
+    controller!.findInput<double>('state')!.value = 0;
 
     // Simple rectangular hitbox centered on the character
     hitbox = RectangleHitbox(
