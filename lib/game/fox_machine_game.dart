@@ -34,6 +34,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   // Robot form timer
   double _robotFormTimer = 0.0;
+  bool _isRevertingFromRobotForm = false;
 
   // For variable jump height
   bool isTapHeld = false;
@@ -202,6 +203,13 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       if (_animationTimer >= _animationDuration) {
         // Animation finished, resume normal play
         gameState = GameState.playing;
+
+        // Check if we need to complete reverting from robot form
+        if (_isRevertingFromRobotForm) {
+          _isRevertingFromRobotForm = false;
+          isRobotForm = false;
+          speedMultiplier = GameConstants.normalSpeedMultiplier;
+        }
       }
       return; // Skip regular game updates during animation
     }
@@ -209,14 +217,18 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     if (gameState != GameState.playing) return;
 
     // Update robot form timer if active
-    if (isRobotForm) {
+    if (isRobotForm && !_isRevertingFromRobotForm) {
       _robotFormTimer -= dt;
       if (_robotFormTimer <= 0) {
-        // Time's up, revert to normal form
+        // Time's up, start the reversion animation
         _robotFormTimer = 0;
-        isRobotForm = false;
+        _isRevertingFromRobotForm = true;
+
+        // Enter animation state to pause the game while animation plays
+        enterAnimatingState();
+
+        // Start transition to normal form
         player.toggleRobotForm(false);
-        speedMultiplier = GameConstants.normalSpeedMultiplier;
       }
     }
 
@@ -357,6 +369,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     tapHoldDuration = 0.0;
     currentJumpPower = 0.0;
     _robotFormTimer = 0.0;
+    _isRevertingFromRobotForm = false;
 
     // Reset timers
     _initialPauseActive = true;
