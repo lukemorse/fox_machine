@@ -1,8 +1,7 @@
 /// Constants used throughout the game application
 class GameConstants {
   // Debug flags
-  static bool debug = true;
-  static bool debugCollisions = true; // Additional flag for collision debugging
+  static bool debug = false;
 
   // Game design resolution
   static const double designResolutionWidth = 1280.0;
