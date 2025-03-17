@@ -32,6 +32,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   double speedMultiplier = GameConstants.normalSpeedMultiplier;
   bool isRobotForm = false;
 
+  // Robot form timer
+  double _robotFormTimer = 0.0;
+
   // For variable jump height
   bool isTapHeld = false;
   double tapHoldDuration = 0.0;
@@ -205,6 +208,18 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     if (gameState != GameState.playing) return;
 
+    // Update robot form timer if active
+    if (isRobotForm) {
+      _robotFormTimer -= dt;
+      if (_robotFormTimer <= 0) {
+        // Time's up, revert to normal form
+        _robotFormTimer = 0;
+        isRobotForm = false;
+        player.toggleRobotForm(false);
+        speedMultiplier = GameConstants.normalSpeedMultiplier;
+      }
+    }
+
     // Update terrain offset to make it scroll with game
     _groundOffset += gameSpeed * speedMultiplier * dt;
 
@@ -291,18 +306,23 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   void toggleRobotForm() {
-    isRobotForm = !isRobotForm;
+    if (!isRobotForm) {
+      // Entering robot form
+      isRobotForm = true;
+      _robotFormTimer = GameConstants.robotFormDuration;
 
-    // Enter animation state
-    enterAnimatingState();
+      // Enter animation state
+      enterAnimatingState();
 
-    // Toggle player form
-    player.toggleRobotForm(isRobotForm);
+      // Toggle player form
+      player.toggleRobotForm(true);
 
-    // Set appropriate speed multiplier
-    speedMultiplier = isRobotForm
-        ? GameConstants.robotSpeedMultiplier
-        : GameConstants.normalSpeedMultiplier;
+      // Set appropriate speed multiplier
+      speedMultiplier = GameConstants.robotSpeedMultiplier;
+    } else {
+      // Already in robot form, extend the duration
+      _robotFormTimer = GameConstants.robotFormDuration;
+    }
   }
 
   // Start animation state
@@ -336,6 +356,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     isTapHeld = false;
     tapHoldDuration = 0.0;
     currentJumpPower = 0.0;
+    _robotFormTimer = 0.0;
 
     // Reset timers
     _initialPauseActive = true;

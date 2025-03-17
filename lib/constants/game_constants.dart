@@ -22,6 +22,9 @@ class GameConstants {
   static const double robotSpeedMultiplier = 1.8;
   static const double normalSpeedMultiplier = 1.0;
 
+  // Robot form duration in seconds
+  static const double robotFormDuration = 10.0;
+
   // Jump controls
   static const double maxJumpHoldTime =
       0.5; // Maximum time to hold for highest jump
