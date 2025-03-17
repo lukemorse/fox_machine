@@ -82,7 +82,7 @@ class Player extends PositionComponent
       'State Machine 1',
     );
     artboard.addController(controller!);
-    controller!.findInput<double>('state')!.value = 0;
+    _startFoxAnimation();
 
     // Simple rectangular hitbox centered on the character
     hitbox = RectangleHitbox(
@@ -94,6 +94,12 @@ class Player extends PositionComponent
     add(hitbox);
 
     return super.onLoad();
+  }
+
+  void _startFoxAnimation() async {
+    _updateState(PlayerState.idle);
+    await Future.delayed(const Duration(seconds: 1));
+    _updateState(PlayerState.walk);
   }
 
   @override
@@ -136,26 +142,29 @@ class Player extends PositionComponent
     }
   }
 
-  void toggleRobotForm(bool isRobot) {
+  void toggleRobotForm(bool isRobot) async {
     isRobotForm = isRobot;
 
     if (isRobotForm) {
-      // Switch to robot form
-      normalFoxAnimation.removeFromParent();
-      // TODO: Add robot form animation
-
       // Enhanced abilities
       jumpSpeed = -1100;
       maxJumpSpeed = -1500;
       minJumpSpeed = -1100;
-    } else {
-      // Switch back to normal form
-      // TODO: Add normal form animation back
 
+      // Switch to robot form
+      _updateState(PlayerState.morphToRobot);
+      await Future.delayed(const Duration(seconds: 1));
+      _updateState(PlayerState.robotWalk);
+    } else {
       // Reset abilities
       jumpSpeed = -900;
       maxJumpSpeed = -1300;
       minJumpSpeed = -900;
+
+      // Switch to robot form
+      _updateState(PlayerState.morphToFox);
+      await Future.delayed(const Duration(seconds: 1));
+      _updateState(PlayerState.walk);
     }
   }
 
@@ -283,4 +292,16 @@ class Player extends PositionComponent
       }
     }
   }
+
+  void _updateState(PlayerState state) {
+    controller?.findInput<double>('state')!.value = state.index.toDouble();
+  }
+}
+
+enum PlayerState {
+  idle,
+  walk,
+  morphToRobot,
+  robotWalk,
+  morphToFox,
 }

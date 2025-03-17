@@ -20,6 +20,10 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   // Game states
   GameState gameState = GameState.playing; // Start directly in playing mode
+  // Track initial pause state
+  bool _initialPauseActive = true;
+  double _initialPauseTimer = 0.0;
+  final double _initialPauseDuration = 1.0; // 1 second pause
 
   // Game variables
   double score = 0;
@@ -53,30 +57,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   // Seed for terrain generation
   final int _terrainSeed = DateTime.now().millisecondsSinceEpoch;
-
-  // Get the ground level at a specific x position
-  double getGroundLevelAt(double x) {
-    // Create a smooth terrain using sine waves for simplicity
-    // We can replace this with more complex algorithms like Perlin noise later
-    final position = x + _groundOffset;
-
-    // Primary wave - large rolling hills
-    final primaryWave =
-        math.sin(position / _groundWavelength * 2 * math.pi) * _groundAmplitude;
-
-    // Secondary wave - smaller variations
-    final secondaryWave =
-        math.sin(position / (_groundWavelength / 5) * 2 * math.pi) *
-            (_groundAmplitude * 0.3);
-
-    // Tertiary wave - tiny variations
-    final tertiaryWave =
-        math.sin(position / (_groundWavelength / 20) * 2 * math.pi) *
-            (_groundAmplitude * 0.1);
-
-    // Combine waves and return
-    return baseGroundLevel + primaryWave + secondaryWave + tertiaryWave;
-  }
 
   // Scaling factors for different device sizes
   late double scaleX;
@@ -200,6 +180,15 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   void update(double dt) {
     super.update(dt);
 
+    // Handle initial pause
+    if (_initialPauseActive) {
+      _initialPauseTimer += dt;
+      if (_initialPauseTimer >= _initialPauseDuration) {
+        _initialPauseActive = false;
+      }
+      return; // Skip regular game updates during initial pause
+    }
+
     if (gameState != GameState.playing) return;
 
     // Update terrain offset to make it scroll with game
@@ -321,6 +310,10 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     tapHoldDuration = 0.0;
     currentJumpPower = 0.0;
 
+    // Reset initial pause
+    _initialPauseActive = true;
+    _initialPauseTimer = 0.0;
+
     // Reset terrain offset
     _groundOffset = 0.0;
 
@@ -395,5 +388,28 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       actualPosition.x / scaleX,
       actualPosition.y / scaleY,
     );
+  }
+
+  double getGroundLevelAt(double x) {
+    // Create a smooth terrain using sine waves for simplicity
+    // We can replace this with more complex algorithms like Perlin noise later
+    final position = x + _groundOffset;
+
+    // Primary wave - large rolling hills
+    final primaryWave =
+        math.sin(position / _groundWavelength * 2 * math.pi) * _groundAmplitude;
+
+    // Secondary wave - smaller variations
+    final secondaryWave =
+        math.sin(position / (_groundWavelength / 5) * 2 * math.pi) *
+            (_groundAmplitude * 0.3);
+
+    // Tertiary wave - tiny variations
+    final tertiaryWave =
+        math.sin(position / (_groundWavelength / 20) * 2 * math.pi) *
+            (_groundAmplitude * 0.1);
+
+    // Combine waves and return
+    return baseGroundLevel + primaryWave + secondaryWave + tertiaryWave;
   }
 }
