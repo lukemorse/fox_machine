@@ -153,18 +153,26 @@ class Player extends PositionComponent
 
       // Switch to robot form
       _updateState(PlayerState.morphToRobot);
-      await Future.delayed(const Duration(seconds: 1));
-      _updateState(PlayerState.robotWalk);
+
+      // After animation time, update to final state
+      // This won't block since animation state is handled in main game
+      Future.delayed(const Duration(seconds: 1), () {
+        _updateState(PlayerState.robotWalk);
+      });
     } else {
       // Reset abilities
       jumpSpeed = -900;
       maxJumpSpeed = -1300;
       minJumpSpeed = -900;
 
-      // Switch to robot form
+      // Switch to fox form
       _updateState(PlayerState.morphToFox);
-      await Future.delayed(const Duration(seconds: 1));
-      _updateState(PlayerState.walk);
+
+      // After animation time, update to final state
+      // This won't block since animation state is handled in main game
+      Future.delayed(const Duration(seconds: 1), () {
+        _updateState(PlayerState.walk);
+      });
     }
   }
 
@@ -205,12 +213,12 @@ class Player extends PositionComponent
       add(normalFoxAnimation);
 
       // Set initial animation state to walking
-      final controller = StateMachineController.fromArtboard(
+      controller = StateMachineController.fromArtboard(
         artboard,
         'State Machine 1',
       );
       artboard.addController(controller!);
-      controller.findInput<double>('walk')!.value = 2;
+      _startFoxAnimation();
     } catch (e) {
       // Silent fail - don't interrupt gameplay
     }

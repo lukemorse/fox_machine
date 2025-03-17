@@ -88,6 +88,10 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   late CameraComponent gameCamera;
   late World gameWorld;
 
+  // For animation state
+  double _animationTimer = 0.0;
+  final double _animationDuration = 1.0; // 1 second animation
+
   FoxMachineGame({this.onMainMenuPressed}) {
     // Create world
     gameWorld = World();
@@ -189,6 +193,16 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       return; // Skip regular game updates during initial pause
     }
 
+    // Handle animation state
+    if (gameState == GameState.animating) {
+      _animationTimer += dt;
+      if (_animationTimer >= _animationDuration) {
+        // Animation finished, resume normal play
+        gameState = GameState.playing;
+      }
+      return; // Skip regular game updates during animation
+    }
+
     if (gameState != GameState.playing) return;
 
     // Update terrain offset to make it scroll with game
@@ -278,10 +292,23 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
   void toggleRobotForm() {
     isRobotForm = !isRobotForm;
+
+    // Enter animation state
+    enterAnimatingState();
+
+    // Toggle player form
     player.toggleRobotForm(isRobotForm);
+
+    // Set appropriate speed multiplier
     speedMultiplier = isRobotForm
         ? GameConstants.robotSpeedMultiplier
         : GameConstants.normalSpeedMultiplier;
+  }
+
+  // Start animation state
+  void enterAnimatingState() {
+    gameState = GameState.animating;
+    _animationTimer = 0.0;
   }
 
   void gameOver() {
@@ -310,9 +337,10 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     tapHoldDuration = 0.0;
     currentJumpPower = 0.0;
 
-    // Reset initial pause
+    // Reset timers
     _initialPauseActive = true;
     _initialPauseTimer = 0.0;
+    _animationTimer = 0.0;
 
     // Reset terrain offset
     _groundOffset = 0.0;
