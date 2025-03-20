@@ -3,6 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../components/player.dart';
 import '../components/obstacle.dart';
@@ -12,10 +13,12 @@ import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 import '../widgets/hud_overlay.dart';
 import '../widgets/game_over_overlay.dart';
+import '../widgets/pause_overlay.dart';
 import '../services/audio_service.dart';
 
 /// Main game class that handles game logic and state
-class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
+class FoxMachineGame extends FlameGame
+    with TapDetector, HasCollisionDetection, KeyboardEvents {
   // Optional callback for navigating back to main menu
   Function? onMainMenuPressed;
 
@@ -192,11 +195,18 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
                 }
               },
             ),
+        'pause': (BuildContext context, FoxMachineGame game) =>
+            PauseOverlay(game: game),
       };
 
   @override
   void update(double dt) {
     super.update(dt);
+
+    // Skip updates if game is paused
+    if (gameState == GameState.paused) {
+      return;
+    }
 
     // Handle initial pause
     if (_initialPauseActive) {
@@ -308,6 +318,11 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       isTapHeld = true;
       tapHoldDuration = 0.0;
       player.jump();
+    } else if (gameState == GameState.paused) {
+      // If game is paused, tapping anywhere outside the pause overlay will resume
+      resume();
+    } else if (gameState == GameState.gameOver) {
+      reset();
     }
   }
 
@@ -316,8 +331,6 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     if (gameState == GameState.playing) {
       isTapHeld = false;
       player.releaseJump();
-    } else if (gameState == GameState.gameOver) {
-      reset();
     }
   }
 
@@ -452,11 +465,37 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   void pause() {
-    gameState = GameState.paused;
+    if (gameState == GameState.playing) {
+      gameState = GameState.paused;
+
+      // Pause music
+      audioService.stopMusic();
+
+      // Show pause overlay
+      if (!overlays.isActive('pause')) {
+        overlays.remove('hud');
+        overlays.add('pause');
+      }
+    }
   }
 
   void resume() {
-    gameState = GameState.playing;
+    if (gameState == GameState.paused) {
+      gameState = GameState.playing;
+
+      // Resume appropriate music based on form
+      if (isRobotForm) {
+        audioService.playRobotMusic();
+      } else {
+        audioService.playMainMusic();
+      }
+
+      // Show HUD overlay
+      if (!overlays.isActive('hud')) {
+        overlays.remove('pause');
+        overlays.add('hud');
+      }
+    }
   }
 
   // Helper method to convert design coordinates to actual screen coordinates
@@ -496,5 +535,25 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
 
     // Combine waves and return
     return baseGroundLevel + primaryWave + secondaryWave + tertiaryWave;
+  }
+
+  @override
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (event is KeyDownEvent) {
+      // Toggle pause with ESC or P keys
+      if (keysPressed.contains(LogicalKeyboardKey.escape) ||
+          keysPressed.contains(LogicalKeyboardKey.keyP)) {
+        if (gameState == GameState.playing) {
+          pause();
+        } else if (gameState == GameState.paused) {
+          resume();
+        }
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
   }
 }

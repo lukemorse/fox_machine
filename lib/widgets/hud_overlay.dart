@@ -31,25 +31,18 @@ class HUDOverlay extends StatelessWidget {
             ),
           ),
 
-          // Robot mode indicator
-          game.isRobotForm
-              ? const Text(
-                  'ROBOT MODE',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 2.0,
-                        color: Colors.black,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                    decoration: TextDecoration.none,
-                  ),
-                )
-              : const SizedBox.shrink(),
+          // Pause button
+          IconButton(
+            icon: const Icon(
+              Icons.pause,
+              color: Colors.white,
+              size: 30,
+            ),
+            onPressed: () {
+              // This will trigger the pause overlay through the game's pause method
+              game.pause();
+            },
+          ),
         ],
       ),
     );

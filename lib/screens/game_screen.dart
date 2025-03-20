@@ -113,18 +113,6 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-          StreamBuilder<bool>(
-            stream: Stream.periodic(
-                const Duration(milliseconds: 100), (_) => game.isRobotForm),
-            builder: (context, snapshot) {
-              final isRobot = snapshot.data ?? false;
-              return isRobot
-                  ? const Text('ROBOT MODE',
-                      style: TextStyle(
-                          color: Colors.blue, fontWeight: FontWeight.bold))
-                  : const SizedBox.shrink();
-            },
-          ),
         ],
       ),
     );
