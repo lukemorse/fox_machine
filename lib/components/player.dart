@@ -3,6 +3,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:fox_machine/constants/game_constants.dart';
+import 'package:fox_machine/services/audio_service.dart';
 
 import '../game/fox_machine_game.dart';
 import 'obstacle.dart';
@@ -13,6 +14,9 @@ import 'particle_explosion.dart';
 /// The player character component
 class Player extends PositionComponent
     with CollisionCallbacks, HasGameRef<FoxMachineGame> {
+  // Access audio service through game reference
+  AudioService get audioService => gameRef.audioService;
+
   StateMachineController? controller;
   // Movement variables
   double gravity = 1500;
@@ -133,6 +137,9 @@ class Player extends PositionComponent
       isJumping = true;
       isJumpReleased = false;
       yVelocity = jumpSpeed;
+
+      // Could add jump sound effect here
+      // audioService.playSfx('jump.mp3');
     }
   }
 
@@ -154,6 +161,9 @@ class Player extends PositionComponent
       // Switch to robot form
       _updateState(PlayerState.morphToRobot);
 
+      // Could add morphing sound effect here
+      // audioService.playSfx('morph_to_robot.mp3');
+
       // After animation time, update to final state
       // This won't block since animation state is handled in main game
       Future.delayed(const Duration(seconds: 1), () {
@@ -167,6 +177,9 @@ class Player extends PositionComponent
 
       // Switch to fox form
       _updateState(PlayerState.morphToFox);
+
+      // Could add morphing sound effect here
+      // audioService.playSfx('morph_to_fox.mp3');
 
       // After animation time, update to final state
       // This won't block since animation state is handled in main game
@@ -264,6 +277,9 @@ class Player extends PositionComponent
           isGameOver: true, // Enable dramatic game over explosion
         );
 
+        // Could add crash sound effect here
+        // audioService.playSfx('crash.mp3');
+
         // Hide player and obstacle after a tiny delay to ensure particles appear
         Future.delayed(const Duration(milliseconds: 50), () {
           opacity = 0;
@@ -282,6 +298,9 @@ class Player extends PositionComponent
           isGameOver: false, // Regular explosion, not game over
         );
 
+        // Could add smash sound effect here
+        // audioService.playSfx('robot_smash.mp3');
+
         // Then hide and destroy obstacle
         Future.delayed(const Duration(milliseconds: 50), () {
           other.hide();
@@ -291,6 +310,9 @@ class Player extends PositionComponent
     } else if (other is Collectible) {
       // Collect item
       other.collect();
+
+      // Could add collect sound effect here
+      // audioService.playSfx('collect.mp3');
 
       if (other.type == CollectibleType.crystal) {
         gameRef.toggleRobotForm();

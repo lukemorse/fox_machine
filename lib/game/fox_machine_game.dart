@@ -3,7 +3,6 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flame_audio/flame_audio.dart';
 
 import '../components/player.dart';
 import '../components/obstacle.dart';
@@ -13,6 +12,7 @@ import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 import '../widgets/hud_overlay.dart';
 import '../widgets/game_over_overlay.dart';
+import '../services/audio_service.dart';
 
 /// Main game class that handles game logic and state
 class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
@@ -33,10 +33,8 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
   double speedMultiplier = GameConstants.normalSpeedMultiplier;
   bool isRobotForm = false;
 
-  // Audio tracks
-  static const String mainBgMusic = 'bg_music_main.mp3';
-  static const String robotBgMusic = 'bg_music_robot.mp3';
-  bool _audioInitialized = false;
+  // Audio service
+  final AudioService audioService = AudioService();
 
   // Robot form timer
   double _robotFormTimer = 0.0;
@@ -127,7 +125,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     scaleY = size.y / designResolutionHeight;
 
     // Initialize audio
-    await _initializeAudio();
+    await audioService.initialize();
 
     // Add world and camera
     add(gameWorld);
@@ -167,43 +165,9 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     overlays.add('hud');
 
     // Start main background music
-    _playMainMusic();
+    audioService.playMainMusic();
 
     return super.onLoad();
-  }
-
-  // Audio initialization
-  Future<void> _initializeAudio() async {
-    try {
-      await FlameAudio.audioCache.loadAll([mainBgMusic, robotBgMusic]);
-      _audioInitialized = true;
-    } catch (e) {
-      // Silent fail - don't interrupt gameplay if audio can't be loaded
-      print('Error loading audio: $e');
-    }
-  }
-
-  // Play main background music
-  void _playMainMusic() {
-    if (_audioInitialized) {
-      FlameAudio.bgm.stop();
-      FlameAudio.bgm.play(mainBgMusic);
-    }
-  }
-
-  // Play robot background music
-  void _playRobotMusic() {
-    if (_audioInitialized) {
-      FlameAudio.bgm.stop();
-      FlameAudio.bgm.play(robotBgMusic);
-    }
-  }
-
-  // Stop all background music
-  void _stopMusic() {
-    if (_audioInitialized) {
-      FlameAudio.bgm.stop();
-    }
   }
 
   @override
@@ -257,7 +221,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
           speedMultiplier = GameConstants.normalSpeedMultiplier;
 
           // Switch back to main music
-          _playMainMusic();
+          audioService.playMainMusic();
         }
       }
       return; // Skip regular game updates during animation
@@ -382,7 +346,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       speedMultiplier = GameConstants.robotSpeedMultiplier;
 
       // Switch to robot music
-      _playRobotMusic();
+      audioService.playRobotMusic();
     } else {
       // Already in robot form, extend the duration
       _robotFormTimer = GameConstants.robotFormDuration;
@@ -399,7 +363,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     gameState = GameState.gameOver;
 
     // Stop all music
-    _stopMusic();
+    audioService.stopMusic();
 
     // TODO: Add game over music
 
@@ -429,7 +393,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     _isRevertingFromRobotForm = false;
 
     // Start main background music
-    _playMainMusic();
+    audioService.playMainMusic();
 
     // Reset timers
     _initialPauseActive = true;
