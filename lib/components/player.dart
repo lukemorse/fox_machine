@@ -270,11 +270,8 @@ class Player extends PositionComponent
           other.hide();
         });
 
-        // Delay game over to let player see the explosion
-        Future.delayed(const Duration(milliseconds: 600), () {
-          // Game over
-          gameRef.gameOver();
-        });
+        // Game over
+        gameRef.gameOver();
       } else {
         // In robot form, create a smaller explosion at obstacle (not game over)
         ParticleExplosion.createBigExplosion(
