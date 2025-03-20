@@ -31,7 +31,7 @@ flutter:
     - assets/images/
     - assets/rive/
     - assets/audio/music/
-    - assets/audio/sound_fx/
+    - assets/audio/sfx/
 
 flutter_launcher_icons:
   image_path: "assets/app_icon.png"

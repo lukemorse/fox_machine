@@ -1,4 +1,5 @@
 import 'package:flame_audio/flame_audio.dart';
+import '../constants/audio_constants.dart';
 
 /// Manages all game audio including background music and sound effects
 class AudioService {
@@ -7,18 +8,20 @@ class AudioService {
   factory AudioService() => _instance;
   AudioService._internal();
 
-  // Audio tracks
-  static const String mainBgMusic = 'music/bg_music_main.mp3';
-  static const String robotBgMusic = 'music/bg_music_robot.mp3';
-  // TODO: Add game over music when available
-
   bool _audioInitialized = false;
   bool _isMuted = false; // For potential mute feature
 
   /// Initialize audio system and preload sounds
   Future<void> initialize() async {
     try {
-      await FlameAudio.audioCache.loadAll([mainBgMusic, robotBgMusic]);
+      // Preload music
+      await FlameAudio.audioCache.loadAll([
+        AudioConstants.mainBgMusic,
+        AudioConstants.robotBgMusic,
+        // Preload sound effects
+        AudioConstants.swellUpSfx,
+        AudioConstants.swellDownSfx,
+      ]);
       _audioInitialized = true;
     } catch (e) {
       // Silent fail - don't interrupt gameplay if audio can't be loaded
@@ -30,7 +33,7 @@ class AudioService {
   void playMainMusic() {
     if (_audioInitialized && !_isMuted) {
       FlameAudio.bgm.stop();
-      FlameAudio.bgm.play(mainBgMusic);
+      FlameAudio.bgm.play(AudioConstants.mainBgMusic);
     }
   }
 
@@ -38,7 +41,7 @@ class AudioService {
   void playRobotMusic() {
     if (_audioInitialized && !_isMuted) {
       FlameAudio.bgm.stop();
-      FlameAudio.bgm.play(robotBgMusic);
+      FlameAudio.bgm.play(AudioConstants.robotBgMusic);
     }
   }
 
@@ -53,6 +56,36 @@ class AudioService {
   void playSfx(String sfxName) {
     if (_audioInitialized && !_isMuted) {
       FlameAudio.play(sfxName);
+    }
+  }
+
+  /// Play swell up effect when morphing to robot
+  /// Interrupts current music and transitions to robot music
+  void playMorphToRobotSfx() async {
+    if (_audioInitialized && !_isMuted) {
+      // Stop current music immediately
+      print('Stopping current music: ${DateTime.now()}');
+      FlameAudio.bgm.stop();
+
+      // Play swell up effect
+      FlameAudio.play(AudioConstants.swellUpSfx);
+      await Future.delayed(const Duration(milliseconds: 1200));
+      playRobotMusic();
+    }
+  }
+
+  /// Play swell down effect when morphing back to fox
+  /// Interrupts current music and transitions to main music
+  void playMorphToFoxSfx() async {
+    if (_audioInitialized && !_isMuted) {
+      // Stop current music immediately
+      FlameAudio.bgm.stop();
+
+      // Play swell down effect
+      FlameAudio.play(AudioConstants.swellDownSfx);
+      await Future.delayed(const Duration(milliseconds: 1200));
+
+      playMainMusic();
     }
   }
 

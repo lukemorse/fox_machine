@@ -220,8 +220,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
           isRobotForm = false;
           speedMultiplier = GameConstants.normalSpeedMultiplier;
 
-          // Switch back to main music
-          audioService.playMainMusic();
+          // Music transition is now handled by the sound effect in Player.toggleRobotForm
         }
       }
       return; // Skip regular game updates during animation
@@ -345,8 +344,7 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
       // Set appropriate speed multiplier
       speedMultiplier = GameConstants.robotSpeedMultiplier;
 
-      // Switch to robot music
-      audioService.playRobotMusic();
+      // Music transition is now handled by the sound effect in Player.toggleRobotForm
     } else {
       // Already in robot form, extend the duration
       _robotFormTimer = GameConstants.robotFormDuration;
@@ -365,7 +363,8 @@ class FoxMachineGame extends FlameGame with TapDetector, HasCollisionDetection {
     // Stop all music
     audioService.stopMusic();
 
-    // TODO: Add game over music
+    // TODO: Add game over music when available
+    // audioService.playSfx(AudioConstants.gameOverMusic);
 
     // Make sure hud is removed first if it's active
     if (overlays.isActive('hud')) {

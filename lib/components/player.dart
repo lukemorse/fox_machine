@@ -161,8 +161,8 @@ class Player extends PositionComponent
       // Switch to robot form
       _updateState(PlayerState.morphToRobot);
 
-      // Could add morphing sound effect here
-      // audioService.playSfx('morph_to_robot.mp3');
+      // Play morphing sound effect
+      audioService.playMorphToRobotSfx();
 
       // After animation time, update to final state
       // This won't block since animation state is handled in main game
@@ -178,8 +178,8 @@ class Player extends PositionComponent
       // Switch to fox form
       _updateState(PlayerState.morphToFox);
 
-      // Could add morphing sound effect here
-      // audioService.playSfx('morph_to_fox.mp3');
+      // Play morphing sound effect
+      audioService.playMorphToFoxSfx();
 
       // After animation time, update to final state
       // This won't block since animation state is handled in main game
