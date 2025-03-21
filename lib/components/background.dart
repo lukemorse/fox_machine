@@ -5,6 +5,8 @@ import 'package:flutter/material.dart' as material;
 
 import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
+import '../services/weather_service.dart';
+import 'weather_effects.dart';
 
 /// Background component that includes both the sky and ground
 class BackgroundComponent extends PositionComponent
@@ -12,12 +14,10 @@ class BackgroundComponent extends PositionComponent
   // List to keep track of background layers
   final List<RectangleComponent> layers = [];
 
-  // TODO: Replace rectangle components with Rive animations for a more dynamic background
-  // Example:
-  // late RiveComponent skyLayer;
-  // late RiveComponent farTreesLayer;
-  // late RiveComponent midTreesLayer;
-  // late RiveComponent groundLayer;
+  // Current weather effect
+  WeatherEffect? _weatherEffect;
+  int _currentWeatherCondition = WeatherService.CLEAR;
+  bool _weatherInitialized = false;
 
   // Store ground segments for efficient rendering
   late List<Vector2> _groundPoints;
@@ -156,11 +156,64 @@ class BackgroundComponent extends PositionComponent
     add(midTreesLayer);
     add(groundComponent);
 
-    // TODO: Add ambient environmental sounds
-    // Example:
-    // FlameAudio.bgm.play('forest_ambience.mp3', volume: 0.5);
+    // Initialize weather effect
+    _initializeWeather();
 
     return super.onLoad();
+  }
+
+  /// Initialize weather based on current conditions
+  Future<void> _initializeWeather() async {
+    try {
+      // Create weather service
+      final weatherService = WeatherService();
+
+      // Get current weather condition
+      final weatherCondition =
+          await weatherService.getCurrentWeatherCondition();
+
+      // Set weather effect based on condition
+      await setWeatherCondition(weatherCondition);
+
+      _weatherInitialized = true;
+    } catch (e) {
+      print('Error initializing weather: $e');
+      // Default to clear weather on error
+      await setWeatherCondition(WeatherService.CLEAR);
+    }
+  }
+
+  /// Set the weather effect based on condition
+  Future<void> setWeatherCondition(int condition) async {
+    // Only change if different from current condition
+    if (condition == _currentWeatherCondition && _weatherEffect != null) {
+      return;
+    }
+
+    // Remove existing weather effect if any
+    if (_weatherEffect != null) {
+      _weatherEffect!.removeFromParent();
+      _weatherEffect = null;
+    }
+
+    // Create new weather effect based on condition
+    switch (condition) {
+      case WeatherService.RAIN:
+        _weatherEffect = RainEffect();
+        break;
+      case WeatherService.CLOUDS:
+        _weatherEffect = CloudEffect();
+        break;
+      case WeatherService.CLEAR:
+        _weatherEffect = SunEffect();
+        break;
+      default:
+        _weatherEffect = SunEffect();
+    }
+
+    // Add weather effect to the component
+    add(_weatherEffect!);
+    _currentWeatherCondition = condition;
   }
 
   // Factory method for easier creation

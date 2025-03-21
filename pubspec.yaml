@@ -10,11 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flame: ^1.25.0
-  flame_audio: ^2.11.0
-  flame_rive: ^1.10.9
+  flame: ^1.8.0
+  flame_audio: ^2.0.5
+  flame_rive: ^1.9.7
   flutter_soloud: ^3.0.3
   google_fonts: ^6.2.1
+  weather: ^3.1.1
+  geolocator: ^13.0.3
 
 dev_dependencies:
   flutter_test:
