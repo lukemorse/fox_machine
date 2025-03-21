@@ -186,7 +186,7 @@ class FoxMachineGame extends FlameGame
               onMainMenuPressed: () {
                 // Go back to main menu if callback exists
                 if (game.onMainMenuPressed != null) {
-                  game.reset();
+                  game.reset(skipMusic: true);
                   // Ensure the gameOver overlay is removed before going to main menu
                   if (game.overlays.isActive('gameOver')) {
                     game.overlays.remove('gameOver');
@@ -397,7 +397,7 @@ class FoxMachineGame extends FlameGame
     });
   }
 
-  void reset({bool skipPlayerReset = false}) {
+  void reset({bool skipPlayerReset = false, bool skipMusic = false}) {
     // Reset game state
     gameState = GameState.playing;
 
@@ -413,8 +413,10 @@ class FoxMachineGame extends FlameGame
     _robotFormTimer = 0.0;
     _isRevertingFromRobotForm = false;
 
-    // Start main background music
-    audioService.playMainMusic();
+    // Start main background music only if not skipped
+    if (!skipMusic) {
+      audioService.playMainMusic();
+    }
 
     // Reset timers
     _initialPauseActive = true;
