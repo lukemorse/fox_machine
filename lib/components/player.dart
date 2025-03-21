@@ -18,6 +18,8 @@ class Player extends PositionComponent
   AudioService get audioService => gameRef.audioService;
 
   StateMachineController? controller;
+  RiveAnimationController? pausableController;
+
   // Movement variables
   double gravity = 1500;
   double jumpSpeed = -900;
@@ -110,6 +112,16 @@ class Player extends PositionComponent
   void update(double dt) {
     super.update(dt);
 
+    // Check if game is paused
+    if (gameRef.gameState == GameState.paused) {
+      // Pause animation if needed
+      pauseAnimation();
+      return;
+    } else {
+      // Resume animation if needed
+      resumeAnimation();
+    }
+
     if (gameRef.gameState != GameState.playing) return;
 
     // Get current ground level at player's x position
@@ -129,6 +141,20 @@ class Player extends PositionComponent
     } else {
       // If not jumping, follow the ground level
       position.y = groundLevel;
+    }
+  }
+
+  // Pause the animation when the game is paused
+  void pauseAnimation() {
+    if (controller != null) {
+      controller!.isActive = false;
+    }
+  }
+
+  // Resume animation when the game is unpaused
+  void resumeAnimation() {
+    if (controller != null) {
+      controller!.isActive = true;
     }
   }
 

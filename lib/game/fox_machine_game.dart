@@ -468,8 +468,8 @@ class FoxMachineGame extends FlameGame
     if (gameState == GameState.playing) {
       gameState = GameState.paused;
 
-      // Pause music
-      audioService.stopMusic();
+      // Pause music instead of stopping it
+      audioService.pauseMusic();
 
       // Show pause overlay
       if (!overlays.isActive('pause')) {
@@ -483,12 +483,8 @@ class FoxMachineGame extends FlameGame
     if (gameState == GameState.paused) {
       gameState = GameState.playing;
 
-      // Resume appropriate music based on form
-      if (isRobotForm) {
-        audioService.playRobotMusic();
-      } else {
-        audioService.playMainMusic();
-      }
+      // Resume music instead of restarting it
+      audioService.resumeMusic();
 
       // Show HUD overlay
       if (!overlays.isActive('hud')) {

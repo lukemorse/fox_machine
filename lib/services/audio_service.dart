@@ -11,6 +11,10 @@ class AudioService {
   bool _audioInitialized = false;
   bool _isMuted = false; // For potential mute feature
 
+  // Track current music for resuming
+  String _currentMusic = '';
+  bool _isMusicPaused = false;
+
   /// Initialize audio system and preload sounds
   Future<void> initialize() async {
     try {
@@ -34,6 +38,8 @@ class AudioService {
     if (_audioInitialized && !_isMuted) {
       FlameAudio.bgm.stop();
       FlameAudio.bgm.play(AudioConstants.mainBgMusic);
+      _currentMusic = AudioConstants.mainBgMusic;
+      _isMusicPaused = false;
     }
   }
 
@@ -42,6 +48,29 @@ class AudioService {
     if (_audioInitialized && !_isMuted) {
       FlameAudio.bgm.stop();
       FlameAudio.bgm.play(AudioConstants.robotBgMusic);
+      _currentMusic = AudioConstants.robotBgMusic;
+      _isMusicPaused = false;
+    }
+  }
+
+  /// Pause currently playing music
+  void pauseMusic() {
+    if (_audioInitialized && !_isMuted && !_isMusicPaused) {
+      FlameAudio.bgm.pause();
+      _isMusicPaused = true;
+    }
+  }
+
+  /// Resume previously paused music
+  void resumeMusic() {
+    if (_audioInitialized && !_isMuted && _isMusicPaused) {
+      if (_currentMusic.isNotEmpty) {
+        FlameAudio.bgm.resume();
+      } else {
+        // Fallback if no track was remembered
+        playMainMusic();
+      }
+      _isMusicPaused = false;
     }
   }
 
@@ -49,6 +78,8 @@ class AudioService {
   void stopMusic() {
     if (_audioInitialized) {
       FlameAudio.bgm.stop();
+      _currentMusic = '';
+      _isMusicPaused = false;
     }
   }
 
@@ -64,7 +95,6 @@ class AudioService {
   void playMorphToRobotSfx() async {
     if (_audioInitialized && !_isMuted) {
       // Stop current music immediately
-      print('Stopping current music: ${DateTime.now()}');
       FlameAudio.bgm.stop();
 
       // Play swell up effect
