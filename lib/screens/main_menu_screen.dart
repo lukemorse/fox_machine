@@ -43,7 +43,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -53,75 +53,140 @@ class _MainMenuScreenState extends State<MainMenuScreen>
             ],
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Animated title
-              AnimatedBuilder(
-                animation: _scaleAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: child,
-                  );
-                },
-                child: const Text(
-                  'FOX MACHINE',
-                  style: TextStyle(
-                    fontSize: 80,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.orange,
-                        blurRadius: 15,
-                        offset: Offset(0, 0),
-                      ),
-                    ],
-                    decoration: TextDecoration.none,
-                  ),
-                ),
+        child: Stack(
+          children: [
+            // Pattern background
+            Positioned.fill(
+              child: CustomPaint(
+                painter: StarPattern(),
               ),
-              const SizedBox(height: 60),
-
-              // Play button
-              GestureDetector(
-                onTap: widget.onPlayPressed,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'TAP TO START',
-                    style: TextStyle(
-                      fontSize: 32,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.none,
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Animated title with quirky font
+                  AnimatedBuilder(
+                    animation: _scaleAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: child,
+                      );
+                    },
+                    child: Transform.rotate(
+                      angle: -0.05,
+                      child: Text(
+                        'FOX MACHINE',
+                        style: TextStyle(
+                          fontFamily: 'Bangers',
+                          fontSize: 90,
+                          letterSpacing: 2.0,
+                          color: Colors.yellowAccent,
+                          shadows: [
+                            Shadow(
+                              color: Colors.orangeAccent,
+                              blurRadius: 15,
+                              offset: Offset(5, 5),
+                            ),
+                            Shadow(
+                              color: Colors.redAccent,
+                              blurRadius: 10,
+                              offset: Offset(-3, 3),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                  const SizedBox(height: 80),
 
-              const SizedBox(height: 30),
+                  // Play button with hover effect
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: widget.onPlayPressed,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black54,
+                              offset: Offset(5, 5),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'START GAME',
+                          style: TextStyle(
+                            fontFamily: 'PressStart2P',
+                            fontSize: 24,
+                            color: Colors.white,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
-              // Instructions
-              const Text(
-                'PART FOX, PART MACHINE',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.white70,
-                  decoration: TextDecoration.none,
-                ),
+                  const SizedBox(height: 50),
+
+                  // Instructions with comic font
+                  Transform.rotate(
+                    angle: 0.03,
+                    child: Container(
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'PART FOX, ALL AWESOME!',
+                        style: TextStyle(
+                          fontFamily: 'ComicNeue',
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+// Custom painter for star pattern background
+class StarPattern extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final math.Random random =
+        math.Random(42); // Fixed seed for consistent pattern
+    final Paint paint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+
+    // Draw stars
+    for (int i = 0; i < 100; i++) {
+      final double x = random.nextDouble() * size.width;
+      final double y = random.nextDouble() * size.height;
+      final double radius = random.nextDouble() * 2 + 1;
+
+      canvas.drawCircle(Offset(x, y), radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

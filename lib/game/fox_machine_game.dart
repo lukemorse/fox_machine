@@ -321,9 +321,8 @@ class FoxMachineGame extends FlameGame
     } else if (gameState == GameState.paused) {
       // If game is paused, tapping anywhere outside the pause overlay will resume
       resume();
-    } else if (gameState == GameState.gameOver) {
-      reset();
     }
+    // Completely ignore taps in game over state - buttons in overlay will handle themselves
   }
 
   @override
@@ -371,6 +370,7 @@ class FoxMachineGame extends FlameGame
   }
 
   void gameOver() {
+    // Set game state to game over
     gameState = GameState.gameOver;
 
     // Stop all music
@@ -384,15 +384,24 @@ class FoxMachineGame extends FlameGame
       overlays.remove('hud');
     }
 
-    // Add the game over overlay after a longer delay to let all particles display
+    // Set a flag to prevent multiple game over screens
+    bool isGameOverScheduled = false;
+
+    // Add the game over overlay after a delay to let all particles display
     Future.delayed(const Duration(milliseconds: 2000), () {
-      // Add the game over overlay
-      overlays.add('gameOver');
+      // Only add the overlay if we're still in game over state
+      // (user might have reset already via a button elsewhere)
+      if (gameState == GameState.gameOver && !overlays.isActive('gameOver')) {
+        overlays.add('gameOver');
+      }
     });
   }
 
   void reset({bool skipPlayerReset = false}) {
+    // Reset game state
     gameState = GameState.playing;
+
+    // Reset game variables
     score = 0;
     distanceTraveled = 0;
     gameSpeed = GameConstants.baseGameSpeed;
@@ -414,6 +423,19 @@ class FoxMachineGame extends FlameGame
 
     // Reset terrain offset
     _groundOffset = 0.0;
+
+    // Make sure all overlays are properly managed
+    if (overlays.isActive('gameOver')) {
+      overlays.remove('gameOver');
+    }
+
+    if (overlays.isActive('pause')) {
+      overlays.remove('pause');
+    }
+
+    if (!overlays.isActive('hud')) {
+      overlays.add('hud');
+    }
 
     // Remove all obstacles and collectibles
     gameWorld.children
@@ -455,10 +477,15 @@ class FoxMachineGame extends FlameGame
 
   // This method can be called safely from the overlays after the game is initialized
   void restartFromGameOver() {
-    reset();
+    // Make sure we remove the game over overlay before restarting
     if (overlays.isActive('gameOver')) {
       overlays.remove('gameOver');
     }
+
+    // Reset the game state and variables
+    reset();
+
+    // Add the HUD overlay if it's not active
     if (!overlays.isActive('hud')) {
       overlays.add('hud');
     }

@@ -32,6 +32,21 @@ flutter:
     - assets/rive/
     - assets/audio/music/
     - assets/audio/sfx/
+    
+  # Add custom fonts for the quirky UI
+  fonts:
+    - family: Bangers
+      fonts:
+        - asset: assets/fonts/Bangers-Regular.ttf
+    - family: PressStart2P
+      fonts:
+        - asset: assets/fonts/PressStart2P-Regular.ttf
+    - family: ComicNeue
+      fonts:
+        - asset: assets/fonts/ComicNeue-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/ComicNeue-Regular.ttf
+          weight: 400
 
 flutter_launcher_icons:
   image_path: "assets/app_icon.png"
