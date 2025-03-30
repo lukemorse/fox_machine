@@ -87,17 +87,6 @@ class _PauseOverlayState extends State<PauseOverlay>
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              const Text(
-                'Take a breather!',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontFamily: 'ComicNeue', // Quirky font
-                  color: Colors.yellow,
-                  fontStyle: FontStyle.italic,
-                  decoration: TextDecoration.none,
-                ),
-              ),
               const SizedBox(height: 30),
               Row(
                 mainAxisSize: MainAxisSize.min,

@@ -12,4 +12,16 @@ class AudioConstants {
   static const String collectSfx = 'sfx/collect.mp3';
   static const String crashSfx = 'sfx/crash.mp3';
   static const String robotSmashSfx = 'sfx/robot_smash.mp3';
+  static const String popSfx = 'sfx/pop.mp3';
+  static const String deathExplosionSfx = 'sfx/death_explosion.mp3';
+
+  // Robot explosion sounds
+  static const List<String> robotExplosionSfx = [
+    'sfx/explosion1.mp3',
+    'sfx/explosion2.mp3',
+    'sfx/explosion3.mp3',
+    'sfx/explosion4.mp3',
+    'sfx/explosion5.mp3',
+    'sfx/explosion6.mp3',
+  ];
 }

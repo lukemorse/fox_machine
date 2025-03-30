@@ -8,7 +8,7 @@ import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
 import '../models/game_state.dart';
 
-enum CollectibleType { berry, crystal, special }
+enum CollectibleType { berry, mushroom, egg }
 
 class Collectible extends PositionComponent
     with CollisionCallbacks, HasGameRef<FoxMachineGame> {
@@ -47,9 +47,9 @@ class Collectible extends PositionComponent
     if (randomValue < 0.7) {
       randomType = CollectibleType.berry;
     } else if (randomValue < 0.9) {
-      randomType = CollectibleType.crystal;
+      randomType = CollectibleType.mushroom;
     } else {
-      randomType = CollectibleType.special;
+      randomType = CollectibleType.egg;
     }
 
     return Collectible(type: randomType, groundLevel: groundLevel);
@@ -89,22 +89,22 @@ class Collectible extends PositionComponent
         //   size: Vector2(30, 30),
         // );
         break;
-      case CollectibleType.crystal:
+      case CollectibleType.mushroom:
         paint = Paint()..color = Colors.purple;
         shape = RectangleComponent(
           size: Vector2(25, 25),
           paint: paint,
         );
-        // TODO: Load crystal animation from Rive
+        // TODO: Load mushroom animation from Rive
         // Example:
         // animation = await RiveComponent.load(
         //   'assets/animations/collectibles.riv',
-        //   artboard: 'Crystal',
+        //   artboard: 'Mushroom',
         //   stateMachines: ['Glowing'],
         //   size: Vector2(30, 30),
         // );
         break;
-      case CollectibleType.special:
+      case CollectibleType.egg:
         paint = Paint()..color = Colors.yellow;
         shape = PolygonComponent(
           [
@@ -114,11 +114,11 @@ class Collectible extends PositionComponent
           ],
           paint: paint,
         );
-        // TODO: Load special collectible animation from Rive
+        // TODO: Load egg animation from Rive
         // Example:
         // animation = await RiveComponent.load(
         //   'assets/animations/collectibles.riv',
-        //   artboard: 'Special',
+        //   artboard: 'Egg',
         //   stateMachines: ['Spinning'],
         //   size: Vector2(30, 30),
         // );
@@ -165,14 +165,14 @@ class Collectible extends PositionComponent
         // Add berry collection particle effect
         _addCollectionParticles(Colors.red);
         break;
-      case CollectibleType.crystal:
+      case CollectibleType.mushroom:
         gameRef.score += 50;
-        // Add crystal collection particle effect
+        // Add mushroom collection particle effect
         _addCollectionParticles(Colors.purple);
         break;
-      case CollectibleType.special:
+      case CollectibleType.egg:
         gameRef.score += 100;
-        // Add special collection particle effect
+        // Add egg collection particle effect
         _addCollectionParticles(Colors.yellow);
         break;
     }

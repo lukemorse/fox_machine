@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/player.dart';
 import '../components/obstacle.dart';
@@ -15,6 +16,7 @@ import '../widgets/hud_overlay.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/pause_overlay.dart';
 import '../services/audio_service.dart';
+import '../services/game_services_manager.dart';
 
 /// Main game class that handles game logic and state
 class FoxMachineGame extends FlameGame
@@ -36,8 +38,17 @@ class FoxMachineGame extends FlameGame
   double speedMultiplier = GameConstants.normalSpeedMultiplier;
   bool isRobotForm = false;
 
-  // Audio service
+  // Energy system
+  double energy = 100.0; // Max energy
+  double maxEnergy = 100.0;
+  double energyGainPerCollectible = 20.0; // Energy gained per collectible
+
+  // Services
   final AudioService audioService = AudioService();
+  final GameServicesManager gameServicesManager = GameServicesManager();
+
+  // High score
+  int highScore = 0;
 
   // Robot form timer
   double _robotFormTimer = 0.0;
@@ -103,6 +114,9 @@ class FoxMachineGame extends FlameGame
   double _animationTimer = 0.0;
   final double _animationDuration = 1.0; // 1 second animation
 
+  // Keys for saved preferences
+  static const String _highScoreKey = 'fox_machine_high_score';
+
   FoxMachineGame({this.onMainMenuPressed}) {
     // Create world
     gameWorld = World();
@@ -129,6 +143,12 @@ class FoxMachineGame extends FlameGame
 
     // Initialize audio
     await audioService.initialize();
+
+    // Initialize game services
+    await gameServicesManager.initialize();
+
+    // Load saved high score
+    await loadHighScore();
 
     // Add world and camera
     add(gameWorld);
@@ -180,6 +200,7 @@ class FoxMachineGame extends FlameGame
         'gameOver': (BuildContext context, FoxMachineGame game) =>
             GameOverOverlay(
               score: game.score.toInt(),
+              game: game,
               onRestartPressed: () {
                 game.restartFromGameOver();
               },
@@ -376,8 +397,15 @@ class FoxMachineGame extends FlameGame
     // Stop all music
     audioService.stopMusic();
 
-    // TODO: Add game over music when available
-    // audioService.playSfx(AudioConstants.gameOverMusic);
+    // Check if this is a new high score
+    final finalScore = score.toInt();
+    if (finalScore > highScore) {
+      highScore = finalScore;
+      // Save the new high score
+      saveHighScore();
+      // Submit the new high score to leaderboard
+      gameServicesManager.submitScore(finalScore);
+    }
 
     // Make sure hud is removed first if it's active
     if (overlays.isActive('hud')) {
@@ -580,5 +608,25 @@ class FoxMachineGame extends FlameGame
       }
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Save the current high score to persistent storage
+  Future<void> saveHighScore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_highScoreKey, highScore);
+    } catch (e) {
+      debugPrint('Error saving high score: $e');
+    }
+  }
+
+  /// Load the saved high score from persistent storage
+  Future<void> loadHighScore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      highScore = prefs.getInt(_highScoreKey) ?? 0;
+    } catch (e) {
+      debugPrint('Error loading high score: $e');
+    }
   }
 }

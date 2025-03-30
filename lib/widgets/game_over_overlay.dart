@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../game/fox_machine_game.dart';
 
 /// Displays the game over screen when the player dies
 class GameOverOverlay extends StatefulWidget {
   final Function onMainMenuPressed;
   final Function onRestartPressed;
   final int score;
+  final FoxMachineGame game;
 
   const GameOverOverlay({
     super.key,
     required this.onMainMenuPressed,
     required this.onRestartPressed,
     required this.score,
+    required this.game,
   });
 
   @override
@@ -108,6 +111,39 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                 ),
               ),
             ),
+
+            // High score display
+            if (widget.game.highScore > 0) ...[
+              const SizedBox(height: 10),
+              Transform.rotate(
+                angle: 0.05, // Slight tilt in opposite direction
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.purpleAccent,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black54,
+                        blurRadius: 5,
+                        offset: Offset(3, 3),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'High Score: ${widget.game.highScore}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontFamily: 'PressStart2P', // Pixel font
+                      color: Colors.yellow,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 30),
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -126,6 +162,14 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                   onPressed: () => widget.onMainMenuPressed(),
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+            _QuirkyButton(
+              text: 'Leaderboard',
+              icon: Icons.leaderboard,
+              color: Colors.deepPurpleAccent,
+              onPressed: () =>
+                  widget.game.gameServicesManager.showLeaderboard(),
             ),
           ],
         ),

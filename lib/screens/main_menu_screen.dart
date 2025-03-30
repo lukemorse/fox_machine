@@ -146,7 +146,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        'PART FOX, ALL AWESOME!',
+                        'PART FOX, PART MACHINE',
                         style: TextStyle(
                           fontFamily: 'ComicNeue',
                           fontSize: 28,

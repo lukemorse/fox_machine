@@ -86,7 +86,8 @@ class AudioService {
   /// Play a sound effect once
   void playSfx(String sfxName) {
     if (_audioInitialized && !_isMuted) {
-      FlameAudio.play(sfxName);
+      // Play at a higher volume (1.5x)
+      FlameAudio.play(sfxName, volume: 1.5);
     }
   }
 
@@ -97,8 +98,8 @@ class AudioService {
       // Stop current music immediately
       FlameAudio.bgm.stop();
 
-      // Play swell up effect
-      FlameAudio.play(AudioConstants.swellUpSfx);
+      // Play swell up effect with higher volume
+      FlameAudio.play(AudioConstants.swellUpSfx, volume: 1.5);
       await Future.delayed(const Duration(milliseconds: 1200));
       playRobotMusic();
     }
@@ -111,8 +112,8 @@ class AudioService {
       // Stop current music immediately
       FlameAudio.bgm.stop();
 
-      // Play swell down effect
-      FlameAudio.play(AudioConstants.swellDownSfx);
+      // Play swell down effect with higher volume
+      FlameAudio.play(AudioConstants.swellDownSfx, volume: 1.5);
       await Future.delayed(const Duration(milliseconds: 1200));
 
       playMainMusic();

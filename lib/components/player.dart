@@ -4,6 +4,8 @@ import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:fox_machine/constants/game_constants.dart';
 import 'package:fox_machine/services/audio_service.dart';
+import 'package:fox_machine/constants/audio_constants.dart';
+import 'dart:math' as math;
 
 import '../game/fox_machine_game.dart';
 import 'obstacle.dart';
@@ -16,6 +18,9 @@ class Player extends PositionComponent
     with CollisionCallbacks, HasGameRef<FoxMachineGame> {
   // Access audio service through game reference
   AudioService get audioService => gameRef.audioService;
+
+  // Random number generator for explosion sounds
+  final math.Random _random = math.Random();
 
   StateMachineController? controller;
   RiveAnimationController? pausableController;
@@ -303,8 +308,8 @@ class Player extends PositionComponent
           isGameOver: true, // Enable dramatic game over explosion
         );
 
-        // Could add crash sound effect here
-        // audioService.playSfx('crash.mp3');
+        // Play death explosion sound
+        audioService.playSfx(AudioConstants.deathExplosionSfx);
 
         // Hide player and obstacle after a tiny delay to ensure particles appear
         Future.delayed(const Duration(milliseconds: 50), () {
@@ -324,8 +329,10 @@ class Player extends PositionComponent
           isGameOver: false, // Regular explosion, not game over
         );
 
-        // Could add smash sound effect here
-        // audioService.playSfx('robot_smash.mp3');
+        // Play random robot explosion sound
+        final randomIndex =
+            _random.nextInt(AudioConstants.robotExplosionSfx.length);
+        audioService.playSfx(AudioConstants.robotExplosionSfx[randomIndex]);
 
         // Then hide and destroy obstacle
         Future.delayed(const Duration(milliseconds: 50), () {
@@ -337,10 +344,14 @@ class Player extends PositionComponent
       // Collect item
       other.collect();
 
-      // Could add collect sound effect here
-      // audioService.playSfx('collect.mp3');
+      // Add energy when collecting any collectible
+      gameRef.energy = math.min(
+          gameRef.maxEnergy, gameRef.energy + gameRef.energyGainPerCollectible);
 
-      if (other.type == CollectibleType.crystal) {
+      // Play pop sound when collecting items
+      audioService.playSfx(AudioConstants.popSfx);
+
+      if (other.type == CollectibleType.mushroom) {
         gameRef.toggleRobotForm();
       }
     }
