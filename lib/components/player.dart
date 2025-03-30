@@ -27,9 +27,9 @@ class Player extends PositionComponent
 
   // Movement variables
   double gravity = 1500;
-  double jumpSpeed = -900;
-  double maxJumpSpeed = -1300;
-  double minJumpSpeed = -900;
+  double jumpSpeed = -700;
+  double maxJumpSpeed = -1000;
+  double minJumpSpeed = -700;
   double yVelocity = 0;
   bool isJumping = false;
   bool isSliding = false;
@@ -184,10 +184,10 @@ class Player extends PositionComponent
     isRobotForm = isRobot;
 
     if (isRobotForm) {
-      // Enhanced abilities
-      jumpSpeed = -1100;
-      maxJumpSpeed = -1500;
-      minJumpSpeed = -1100;
+      // Enhanced abilities, but still challenging
+      jumpSpeed = -850; // Reduced from -1100
+      maxJumpSpeed = -1150; // Reduced from -1500
+      minJumpSpeed = -850; // Reduced from -1100
 
       // Switch to robot form
       _updateState(PlayerState.morphToRobot);
@@ -202,9 +202,9 @@ class Player extends PositionComponent
       });
     } else {
       // Reset abilities
-      jumpSpeed = -900;
-      maxJumpSpeed = -1300;
-      minJumpSpeed = -900;
+      jumpSpeed = -700;
+      maxJumpSpeed = -1000;
+      minJumpSpeed = -700;
 
       // Switch to fox form
       _updateState(PlayerState.morphToFox);
@@ -344,9 +344,21 @@ class Player extends PositionComponent
       // Collect item
       other.collect();
 
-      // Add energy when collecting any collectible
-      gameRef.energy = math.min(
-          gameRef.maxEnergy, gameRef.energy + gameRef.energyGainPerCollectible);
+      // Add energy based on collectible type
+      switch (other.type) {
+        case CollectibleType.berry:
+          gameRef.energy = math.min(gameRef.maxEnergy,
+              gameRef.energy + GameConstants.energyGainFromBerry);
+          break;
+        case CollectibleType.egg:
+          gameRef.energy = math.min(gameRef.maxEnergy,
+              gameRef.energy + GameConstants.energyGainFromEgg);
+          break;
+        case CollectibleType.mushroom:
+          gameRef.energy = math.min(gameRef.maxEnergy,
+              gameRef.energy + GameConstants.energyGainFromMushroom);
+          break;
+      }
 
       // Play pop sound when collecting items
       audioService.playSfx(AudioConstants.popSfx);

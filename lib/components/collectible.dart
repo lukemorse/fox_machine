@@ -40,16 +40,17 @@ class Collectible extends PositionComponent
   static Collectible random({required double groundLevel}) {
     final random = Random();
 
-    // Weight the probability to have more berries than crystals or special items
+    // Weight the probability to have more berries, fewer mushrooms
     final randomValue = random.nextDouble();
 
     CollectibleType randomType;
-    if (randomValue < 0.7) {
+    if (randomValue < 0.85) {
       randomType = CollectibleType.berry;
-    } else if (randomValue < 0.9) {
-      randomType = CollectibleType.mushroom;
-    } else {
+    } else if (randomValue < 0.95) {
       randomType = CollectibleType.egg;
+    } else {
+      // Only 5% chance to get a mushroom (previously 20%)
+      randomType = CollectibleType.mushroom;
     }
 
     return Collectible(type: randomType, groundLevel: groundLevel);
@@ -62,6 +63,11 @@ class Collectible extends PositionComponent
       FoxMachineGame.designResolutionWidth + size.x,
       groundLevel - _heightOffset, // Float above ground level
     );
+
+    // If it's a mushroom, place it even higher
+    if (type == CollectibleType.mushroom) {
+      position.y -= 80.0; // Additional height for mushrooms
+    }
 
     // Set anchor to center
     anchor = Anchor.center;
@@ -137,15 +143,34 @@ class Collectible extends PositionComponent
     if (gameRef.gameState != GameState.playing || isCollected) return;
 
     // Move collectible towards player
-    position.x -= gameRef.gameSpeed * gameRef.speedMultiplier * dt;
+    double moveSpeed = gameRef.gameSpeed * gameRef.speedMultiplier;
+
+    // Make mushrooms move faster and harder to catch
+    if (type == CollectibleType.mushroom) {
+      moveSpeed *= 1.3; // 30% faster
+    }
+
+    position.x -= moveSpeed * dt;
 
     // Update y-position to follow the dynamic ground level while maintaining height offset
-    position.y = gameRef.getGroundLevelAt(position.x) - _heightOffset;
+    double yPos = gameRef.getGroundLevelAt(position.x) - _heightOffset;
+
+    // Keep additional height for mushrooms
+    if (type == CollectibleType.mushroom) {
+      yPos -= 80.0;
+    }
+
+    position.y = yPos;
 
     // Add a gentle floating animation for visual appeal
     final floatOffset =
         sin(gameRef.distanceTraveled / 100 + position.x / 50) * 5;
     position.y += floatOffset;
+
+    // For mushrooms, add more vertical movement to make them harder to catch
+    if (type == CollectibleType.mushroom) {
+      position.y += sin(gameRef.distanceTraveled / 50 + position.x / 25) * 15;
+    }
 
     // Remove if off screen
     if (position.x < -size.x) {

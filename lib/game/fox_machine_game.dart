@@ -39,9 +39,10 @@ class FoxMachineGame extends FlameGame
   bool isRobotForm = false;
 
   // Energy system
-  double energy = 100.0; // Max energy
-  double maxEnergy = 100.0;
-  double energyGainPerCollectible = 20.0; // Energy gained per collectible
+  double energy = GameConstants.maxEnergy;
+  double maxEnergy = GameConstants.maxEnergy;
+  double energyUsageRate = GameConstants.energyUsageRate;
+  double energyRegenRate = GameConstants.energyRegenRate;
 
   // Services
   final AudioService audioService = AudioService();
@@ -293,6 +294,18 @@ class FoxMachineGame extends FlameGame
       tapHoldDuration += dt;
       currentJumpPower = math.min(tapHoldDuration / maxJumpHoldTime, 1.0);
       player.updateJumpVelocity(currentJumpPower);
+
+      // Consume energy while holding jump - more slowly now
+      energy = math.max(0, energy - (energyUsageRate * dt));
+
+      // If energy is completely depleted, force release jump
+      if (energy <= 0) {
+        isTapHeld = false;
+        player.releaseJump();
+      }
+    } else if (energy < maxEnergy && !player.isJumping) {
+      // Regenerate energy slowly when not jumping and not at max
+      energy = math.min(maxEnergy, energy + (energyRegenRate * dt));
     }
 
     // Generate obstacles
@@ -336,9 +349,15 @@ class FoxMachineGame extends FlameGame
   @override
   void onTapDown(TapDownInfo info) {
     if (gameState == GameState.playing) {
-      isTapHeld = true;
-      tapHoldDuration = 0.0;
-      player.jump();
+      // Only allow jump if player has enough energy
+      if (energy >= GameConstants.energyPerJump) {
+        // Consume energy for jump
+        energy -= GameConstants.energyPerJump;
+
+        isTapHeld = true;
+        tapHoldDuration = 0.0;
+        player.jump();
+      }
     } else if (gameState == GameState.paused) {
       // If game is paused, tapping anywhere outside the pause overlay will resume
       resume();
@@ -440,6 +459,9 @@ class FoxMachineGame extends FlameGame
     currentJumpPower = 0.0;
     _robotFormTimer = 0.0;
     _isRevertingFromRobotForm = false;
+
+    // Always reset energy to maximum (100)
+    energy = GameConstants.maxEnergy;
 
     // Start main background music only if not skipped
     if (!skipMusic) {

@@ -33,4 +33,17 @@ class GameConstants {
   static const int playerGroup = 0x01;
   static const int obstacleGroup = 0x02;
   static const int collectibleGroup = 0x04;
+
+  // Energy system
+  static const double maxEnergy = 100.0;
+  static const double energyUsageRate =
+      20.0; // Reduced from 40.0 - Energy used per second while holding jump
+  static const double energyRegenRate =
+      15.0; // Increased from 5.0 - Energy gained per second when not jumping
+  static const double energyGainFromBerry = 5.0; // Energy gained from berry
+  static const double energyGainFromEgg = 15.0; // Energy gained from egg
+  static const double energyGainFromMushroom =
+      40.0; // Energy gained from mushroom
+  static const double energyPerJump =
+      10.0; // Reduced from 20.0 - Energy used per jump
 }
