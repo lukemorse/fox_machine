@@ -3,6 +3,10 @@ class GameConstants {
   // Debug flags
   static bool debug = false;
 
+  // Gameplay difficulty toggles
+  static const bool enableCollectibleVisibilityEffects =
+      true; // Set to false to make collectibles always visible
+
   // Game design resolution
   static const double designResolutionWidth = 1280.0;
   static const double designResolutionHeight = 720.0;
@@ -13,7 +17,10 @@ class GameConstants {
 
   // Spawn rates (in seconds)
   static const double obstacleSpawnRate = 1.5;
-  static const double collectibleSpawnRate = 2.0;
+  static const double collectibleSpawnRateMin =
+      3.0; // Minimum time between collectibles
+  static const double collectibleSpawnRateMax =
+      5.5; // Maximum time between collectibles
 
   // Base game speed (pixels per second)
   static const double baseGameSpeed = 300.0;

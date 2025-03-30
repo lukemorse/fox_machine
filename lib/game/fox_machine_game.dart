@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
 import '../components/player.dart';
 import '../components/obstacle.dart';
@@ -99,13 +100,20 @@ class FoxMachineGame extends FlameGame
   }
 
   // For obstacle and collectible generation
-  final double obstacleSpawnRate =
-      GameConstants.obstacleSpawnRate; // in seconds
+  final double obstacleSpawnRate = GameConstants.obstacleSpawnRate;
   double timeSinceLastObstacle = 0;
 
-  final double collectibleSpawnRate =
-      GameConstants.collectibleSpawnRate; // in seconds
+  // Variable time for next collectible spawn
+  late double timeUntilNextCollectible;
   double timeSinceLastCollectible = 0;
+
+  // Helper method to generate random collectible spawn time
+  double _generateRandomCollectibleSpawnTime() {
+    return GameConstants.collectibleSpawnRateMin +
+        Random().nextDouble() *
+            (GameConstants.collectibleSpawnRateMax -
+                GameConstants.collectibleSpawnRateMin);
+  }
 
   // Camera setup
   late CameraComponent gameCamera;
@@ -138,6 +146,9 @@ class FoxMachineGame extends FlameGame
 
   @override
   Future<void> onLoad() async {
+    // Initialize variable spawn time
+    timeUntilNextCollectible = _generateRandomCollectibleSpawnTime();
+
     // Calculate scaling factors for different device sizes
     scaleX = size.x / designResolutionWidth;
     scaleY = size.y / designResolutionHeight;
@@ -317,9 +328,11 @@ class FoxMachineGame extends FlameGame
 
     // Generate collectibles
     timeSinceLastCollectible += dt;
-    if (timeSinceLastCollectible >= collectibleSpawnRate) {
+    if (timeSinceLastCollectible >= timeUntilNextCollectible) {
       _spawnCollectible();
       timeSinceLastCollectible = 0;
+      // Generate new random time for next collectible
+      timeUntilNextCollectible = _generateRandomCollectibleSpawnTime();
     }
 
     // Gradually increase game speed
