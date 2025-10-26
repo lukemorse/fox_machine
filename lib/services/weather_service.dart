@@ -1,110 +1,70 @@
-import 'package:weather/weather.dart';
-import 'package:geolocator/geolocator.dart';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
-/// A service for fetching weather data based on device location
+/// Provides a lightweight pseudo-random weather simulation for the game.
 class WeatherService {
-  // OpenWeatherMap API key
-  static const String _apiKey = '574d369863384022f8cd8d657b8ed46d';
-
-  // Weather instance
-  final WeatherFactory _wf = WeatherFactory(_apiKey);
-
   // Weather conditions
   static const int CLEAR = 0;
   static const int RAIN = 1;
   static const int CLOUDS = 2;
 
-  // Flag to skip actual weather requests (useful for debugging)
-  final bool _skipWeatherRequests = kDebugMode;
+  // How often to refresh the generated weather condition.
+  final Duration refreshInterval;
 
-  /// Gets the current weather at the device location
+  // Random generator used for weather changes; seeded for reproducibility in tests.
+  final Random _random;
+
+  // Cached weather condition so the weather stays consistent for a while.
+  int _cachedCondition = CLEAR;
+  DateTime _lastUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+
+  WeatherService({
+    Duration? refreshInterval,
+    Random? random,
+  })  : refreshInterval = refreshInterval ?? const Duration(minutes: 5),
+        _random = random ?? Random();
+
+  /// Returns a pseudo-random weather condition.
   Future<int> getCurrentWeatherCondition() async {
-    // In debug mode, skip the actual weather API requests
-    if (_skipWeatherRequests) {
-      debugPrint('WeatherService: Skipping real weather request in debug mode');
-      return CLEAR;
-    }
+    final now = DateTime.now();
+    if (now.difference(_lastUpdate) >= refreshInterval) {
+      _cachedCondition = _generateCondition();
+      _lastUpdate = now;
 
-    try {
-      debugPrint('WeatherService: Checking location permission');
-      // Check location permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          // Return default weather if location is denied
-          debugPrint('WeatherService: Location permission denied');
-          return CLEAR;
-        }
+      if (kDebugMode) {
+        debugPrint(
+          'WeatherService: Generated new weather condition $_cachedCondition',
+        );
       }
-
-      // Get current position
-      Position? position;
-      try {
-        debugPrint('WeatherService: Getting current position');
-        position = await Geolocator.getCurrentPosition();
-      } catch (e) {
-        debugPrint('WeatherService: Error getting position: $e');
-        return CLEAR;
-      }
-
-      // Get weather at current location
-      debugPrint('WeatherService: Fetching weather data');
-      Weather weather = await _wf.currentWeatherByLocation(
-        position.latitude,
-        position.longitude,
+    } else if (kDebugMode) {
+      debugPrint(
+        'WeatherService: Reusing cached weather condition $_cachedCondition',
       );
-
-      // Determine weather condition
-      final String mainCondition =
-          weather.weatherMain?.toLowerCase() ?? 'clear';
-      debugPrint('WeatherService: Weather condition: $mainCondition');
-
-      if (mainCondition.contains('rain') ||
-          mainCondition.contains('drizzle') ||
-          mainCondition.contains('thunderstorm')) {
-        return RAIN;
-      } else if (mainCondition.contains('cloud')) {
-        return CLOUDS;
-      } else {
-        return CLEAR;
-      }
-    } catch (e) {
-      // Return default weather on error
-      debugPrint('WeatherService: Error fetching weather: $e');
-      return CLEAR;
     }
+
+    return _cachedCondition;
   }
 
-  /// Gets weather by city name (fallback method)
-  Future<int> getWeatherByCity(String city) async {
-    // In debug mode, skip the actual weather API requests
-    if (_skipWeatherRequests) {
-      debugPrint('WeatherService: Skipping city weather request in debug mode');
-      return CLEAR;
+  /// Retained for API compatibility; returns the same simulated weather.
+  Future<int> getWeatherByCity(String city) {
+    if (kDebugMode) {
+      debugPrint(
+        'WeatherService: City lookup disabled, returning simulated weather for $city',
+      );
     }
+    return getCurrentWeatherCondition();
+  }
 
-    try {
-      // Get weather for specified city
-      Weather weather = await _wf.currentWeatherByCityName(city);
+  int _generateCondition() {
+    final roll = _random.nextDouble();
 
-      // Determine weather condition
-      final String mainCondition =
-          weather.weatherMain?.toLowerCase() ?? 'clear';
-
-      if (mainCondition.contains('rain') ||
-          mainCondition.contains('drizzle') ||
-          mainCondition.contains('thunderstorm')) {
-        return RAIN;
-      } else if (mainCondition.contains('cloud')) {
-        return CLOUDS;
-      } else {
-        return CLEAR;
-      }
-    } catch (e) {
-      // Return default weather on error
-      debugPrint('WeatherService: Error fetching weather: $e');
+    // Weighted distribution: 60% clear, 25% clouds, 15% rain.
+    if (roll < 0.15) {
+      return RAIN;
+    } else if (roll < 0.40) {
+      return CLOUDS;
+    } else {
       return CLEAR;
     }
   }

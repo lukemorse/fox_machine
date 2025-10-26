@@ -18,15 +18,15 @@ class BackgroundComponent extends PositionComponent
   // Current weather effect
   WeatherEffect? _weatherEffect;
   int _currentWeatherCondition = WeatherService.CLEAR;
-  bool _weatherInitialized = false;
 
   // Store ground segments for efficient rendering
-  late List<Vector2> _groundPoints;
-  late Paint _groundPaint;
-  late Paint _groundOutlinePaint;
-  late Paint _grassPaint;
-  late List<Paint> _grassTuftPaints;
-  late List<Rect> _groundTextureDots;
+  late final List<Vector2> _groundPoints;
+  late final Paint _groundPaint;
+  late final Paint _groundOutlinePaint;
+  late final Paint _grassPaint;
+  late final List<Paint> _grassTuftPaints;
+  late final List<GroundTextureDot> _groundTextureDots;
+  late final Paint _groundTexturePaint;
 
   // Random for variation
   final _random = math.Random();
@@ -87,32 +87,45 @@ class BackgroundComponent extends PositionComponent
       ];
 
       debugPrint('BackgroundComponent: Setting up ground texture');
+      _groundTexturePaint = Paint()
+        ..color = material.Colors.brown.shade600.withOpacity(0.3)
+        ..style = PaintingStyle.fill;
+
       // Create texture dots for ground
-      _groundTextureDots = [];
-      for (int i = 0; i < 300; i++) {
-        _groundTextureDots.add(
-          Rect.fromCircle(
-            center: Offset(
-              _random.nextDouble() * size.x,
-              size.y - _random.nextDouble() * 300,
-            ),
-            radius: 1 + _random.nextDouble() * 2,
+      _groundTextureDots = List.generate(
+        300,
+        (_) => GroundTextureDot(
+          center: Vector2(
+            _random.nextDouble() * size.x,
+            size.y - _random.nextDouble() * 300,
           ),
-        );
-      }
+          radius: 1 + _random.nextDouble() * 2,
+        ),
+        growable: false,
+      );
 
       // Initialize ground points
-      _groundPoints = [];
-      _updateGroundPoints();
+      _groundPoints = List.generate(
+        groundSegments + 1,
+        (i) {
+          final x = i * segmentWidth;
+          final y = gameRef.getGroundLevelAt(x);
+          return Vector2(x, y);
+        },
+        growable: false,
+      );
 
       debugPrint(
-          'BackgroundComponent: Ground points initialized: ${_groundPoints.length}');
+        'BackgroundComponent: Ground points initialized: ${_groundPoints.length}',
+      );
 
       // Create simple colored rectangles as background layers
       debugPrint('BackgroundComponent: Creating sky layer');
       skyLayer = RectangleComponent(
-        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-            FoxMachineGame.designResolutionHeight),
+        size: Vector2(
+          FoxMachineGame.designResolutionWidth * 2,
+          FoxMachineGame.designResolutionHeight,
+        ),
         paint: Paint()..color = material.Colors.lightBlue.shade200,
         position: Vector2(0, 0),
         priority: -110, // Lower priority (renders below)
@@ -120,8 +133,10 @@ class BackgroundComponent extends PositionComponent
 
       debugPrint('BackgroundComponent: Creating far trees layer');
       farTreesLayer = RectangleComponent(
-        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-            FoxMachineGame.designResolutionHeight * 0.4),
+        size: Vector2(
+          FoxMachineGame.designResolutionWidth * 2,
+          FoxMachineGame.designResolutionHeight * 0.4,
+        ),
         paint: Paint()..color = material.Colors.green.shade900,
         position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.6),
         priority: -105, // Middle priority
@@ -129,8 +144,10 @@ class BackgroundComponent extends PositionComponent
 
       debugPrint('BackgroundComponent: Creating mid trees layer');
       midTreesLayer = RectangleComponent(
-        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-            FoxMachineGame.designResolutionHeight * 0.3),
+        size: Vector2(
+          FoxMachineGame.designResolutionWidth * 2,
+          FoxMachineGame.designResolutionHeight * 0.3,
+        ),
         paint: Paint()..color = material.Colors.green.shade700,
         position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.7),
         priority: -102, // Higher priority (renders above other layers)
@@ -139,13 +156,13 @@ class BackgroundComponent extends PositionComponent
       debugPrint('BackgroundComponent: Creating ground component');
       // Create a separate ground component with highest priority
       groundComponent = GroundComponent(
-        gameRef: gameRef,
         groundPoints: _groundPoints,
         groundPaint: _groundPaint,
         groundOutlinePaint: _groundOutlinePaint,
         grassPaint: _grassPaint,
         grassTuftPaints: _grassTuftPaints,
         groundTextureDots: _groundTextureDots,
+        groundTexturePaint: _groundTexturePaint,
         random: _random,
         segmentWidth: segmentWidth,
         groundSegments: groundSegments,
@@ -166,7 +183,7 @@ class BackgroundComponent extends PositionComponent
 
       // Initialize weather effect
       debugPrint('BackgroundComponent: Initializing weather');
-      _initializeWeather();
+      await _initializeWeather();
 
       debugPrint('BackgroundComponent: onLoad completed successfully');
       return super.onLoad();
@@ -194,7 +211,6 @@ class BackgroundComponent extends PositionComponent
       // Set weather effect based on condition
       await setWeatherCondition(weatherCondition);
 
-      _weatherInitialized = true;
       debugPrint('BackgroundComponent: Weather initialized successfully');
     } catch (e, stackTrace) {
       debugPrint('BackgroundComponent: Error initializing weather: $e');
@@ -204,10 +220,10 @@ class BackgroundComponent extends PositionComponent
       debugPrint('BackgroundComponent: Setting default clear weather');
       try {
         await setWeatherCondition(WeatherService.CLEAR);
-        _weatherInitialized = true;
       } catch (fallbackError) {
         debugPrint(
-            'BackgroundComponent: Even fallback weather failed: $fallbackError');
+          'BackgroundComponent: Even fallback weather failed: $fallbackError',
+        );
         // Just continue without weather effects rather than crashing the game
       }
     }
@@ -280,48 +296,35 @@ class BackgroundComponent extends PositionComponent
 
   // Update the ground points based on the current game state
   void _updateGroundPoints() {
-    _groundPoints = [];
-
-    // Create ground segments starting from left edge
-    for (int i = 0; i <= groundSegments; i++) {
+    // Update existing ground vectors to avoid per-frame allocations
+    for (int i = 0; i < _groundPoints.length; i++) {
       final x = i * segmentWidth;
       final y = gameRef.getGroundLevelAt(x);
-      _groundPoints.add(Vector2(x, y));
+      _groundPoints[i].setValues(x, y);
     }
 
     // Update texture dots to move with terrain
-    for (int i = 0; i < _groundTextureDots.length; i++) {
-      final dot = _groundTextureDots[i];
+    final scrollDelta =
+        gameRef.gameSpeed * gameRef.speedMultiplier * 0.016;
 
-      // Occasionally move a dot to maintain distribution as we scroll
+    for (final dot in _groundTextureDots) {
+      // Occasionally reposition a dot to maintain distribution as we scroll
       if (_random.nextDouble() < 0.01) {
-        _groundTextureDots[i] = Rect.fromCircle(
-          center: Offset(
-            gameRef.size.x * (0.2 + _random.nextDouble() * 0.8),
-            size.y - _random.nextDouble() * 300,
-          ),
-          radius: 1 + _random.nextDouble() * 2,
+        dot.center.setValues(
+          gameRef.size.x * (0.2 + _random.nextDouble() * 0.8),
+          size.y - _random.nextDouble() * 300,
         );
+        dot.radius = 1 + _random.nextDouble() * 2;
+        continue;
       }
-      // Otherwise just scroll it
-      else if (dot.left < -10) {
-        _groundTextureDots[i] = Rect.fromCircle(
-          center: Offset(
-            gameRef.size.x + _random.nextDouble() * 50,
-            dot.center.dy,
-          ),
-          radius: dot.width / 2,
-        );
-      } else {
-        // Move with the game speed
-        _groundTextureDots[i] = Rect.fromCircle(
-          center: Offset(
-            dot.center.dx - gameRef.gameSpeed * gameRef.speedMultiplier * 0.016,
-            dot.center.dy,
-          ),
-          radius: dot.width / 2,
-        );
+
+      if (dot.center.x < -10) {
+        dot.center.x = gameRef.size.x + _random.nextDouble() * 50;
+        continue;
       }
+
+      // Move with the game speed
+      dot.center.x -= scrollDelta;
     }
   }
 
@@ -334,28 +337,27 @@ class BackgroundComponent extends PositionComponent
 }
 
 /// Separate component for ground rendering to ensure proper z-ordering
-class GroundComponent extends PositionComponent
-    with HasGameRef<FoxMachineGame> {
+class GroundComponent extends PositionComponent {
   List<Vector2> groundPoints;
-  Paint groundPaint;
-  Paint groundOutlinePaint;
-  Paint grassPaint;
-  List<Paint> grassTuftPaints;
-  List<Rect> groundTextureDots;
-  math.Random random;
-  double segmentWidth;
-  int groundSegments;
-  bool debugGround;
-  FoxMachineGame gameRef;
+  final Paint groundPaint;
+  final Paint groundOutlinePaint;
+  final Paint grassPaint;
+  final List<Paint> grassTuftPaints;
+  List<GroundTextureDot> groundTextureDots;
+  final Paint groundTexturePaint;
+  final math.Random random;
+  final double segmentWidth;
+  final int groundSegments;
+  final bool debugGround;
 
   GroundComponent({
-    required this.gameRef,
     required this.groundPoints,
     required this.groundPaint,
     required this.groundOutlinePaint,
     required this.grassPaint,
     required this.grassTuftPaints,
     required this.groundTextureDots,
+    required this.groundTexturePaint,
     required this.random,
     required this.segmentWidth,
     required this.groundSegments,
@@ -367,7 +369,10 @@ class GroundComponent extends PositionComponent
     }
   }
 
-  void updatePoints(List<Vector2> newPoints, List<Rect> newDots) {
+  void updatePoints(
+    List<Vector2> newPoints,
+    List<GroundTextureDot> newDots,
+  ) {
     groundPoints = newPoints;
     groundTextureDots = newDots;
   }
@@ -383,88 +388,98 @@ class GroundComponent extends PositionComponent
       }
     }
 
-    // Only proceed if we have ground points
     if (groundPoints.isEmpty) {
       print('ERROR: No ground points to render in GroundComponent!');
       return;
     }
 
-    // Draw ground path
-    final groundPath = Path();
-    groundPath.moveTo(groundPoints.first.x, groundPoints.first.y);
+    final groundPath = Path()
+      ..moveTo(groundPoints.first.x, groundPoints.first.y);
 
-    // Add all points along the ground
-    for (final point in groundPoints.skip(1)) {
+    for (var i = 1; i < groundPoints.length; i++) {
+      final point = groundPoints[i];
       groundPath.lineTo(point.x, point.y);
     }
 
-    // Close the path by drawing to the bottom corners
-    groundPath.lineTo(
-        groundPoints.last.x, FoxMachineGame.designResolutionHeight);
-    groundPath.lineTo(0, FoxMachineGame.designResolutionHeight);
-    groundPath.close();
+    groundPath
+      ..lineTo(
+        groundPoints.last.x,
+        FoxMachineGame.designResolutionHeight,
+      )
+      ..lineTo(0, FoxMachineGame.designResolutionHeight)
+      ..close();
 
-    // Fill the ground with gradient
     canvas.drawPath(groundPath, groundPaint);
 
-    // Debug - draw a simple rectangle to verify paint operation
     if (debugGround) {
       canvas.drawRect(
         Rect.fromLTWH(
-            0,
-            FoxMachineGame.designResolutionHeight * 0.8,
-            FoxMachineGame.designResolutionWidth,
-            FoxMachineGame.designResolutionHeight * 0.2),
+          0,
+          FoxMachineGame.designResolutionHeight * 0.8,
+          FoxMachineGame.designResolutionWidth,
+          FoxMachineGame.designResolutionHeight * 0.2,
+        ),
         Paint()..color = material.Colors.red.withOpacity(0.3),
       );
     }
 
-    // Draw texture dots for ground
-    final groundTexturePaint = Paint()
-      ..color = material.Colors.brown.shade600.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-
     for (final dot in groundTextureDots) {
-      canvas.drawOval(dot, groundTexturePaint);
+      canvas.drawCircle(
+        Offset(dot.center.x, dot.center.y),
+        dot.radius,
+        groundTexturePaint,
+      );
     }
 
-    // Draw the ground outline (just the top surface)
-    final outlinePath = Path();
-    outlinePath.moveTo(groundPoints.first.x, groundPoints.first.y);
-    for (final point in groundPoints.skip(1)) {
+    final outlinePath = Path()
+      ..moveTo(groundPoints.first.x, groundPoints.first.y);
+    for (var i = 1; i < groundPoints.length; i++) {
+      final point = groundPoints[i];
       outlinePath.lineTo(point.x, point.y);
     }
     canvas.drawPath(outlinePath, groundOutlinePaint);
 
-    // Add grass along the top of the ground
-    final grassPath = Path();
-    grassPath.moveTo(groundPoints.first.x, groundPoints.first.y - 1);
-    for (final point in groundPoints.skip(1)) {
+    final grassPath = Path()
+      ..moveTo(groundPoints.first.x, groundPoints.first.y - 1);
+    for (var i = 1; i < groundPoints.length; i++) {
+      final point = groundPoints[i];
       grassPath.lineTo(point.x, point.y - 1);
     }
     canvas.drawPath(grassPath, grassPaint);
 
-    // Draw grass tufts along the path
     for (int i = 0; i < groundSegments; i += 5) {
-      if (random.nextBool()) continue; // Skip some positions for variation
+      if (random.nextBool()) continue;
 
-      final x = i * segmentWidth;
-      final y = gameRef.getGroundLevelAt(x);
+      final point = groundPoints[i];
+      final x = point.x;
+      final y = point.y;
 
-      // Randomize tuft properties
       final height = 3 + random.nextDouble() * 8;
       final width = 2 + random.nextDouble() * 4;
       final tilt = -0.2 + random.nextDouble() * 0.4;
 
-      // Draw a simple grass tuft
-      final tuftPath = Path();
-      tuftPath.moveTo(x, y);
-      tuftPath.quadraticBezierTo(
-          x + width / 2 + tilt * height, y - height / 2, x + width, y);
+      final tuftPath = Path()
+        ..moveTo(x, y)
+        ..quadraticBezierTo(
+          x + width / 2 + tilt * height,
+          y - height / 2,
+          x + width,
+          y,
+        );
 
-      // Choose a random grass color
       final grassColorIndex = random.nextInt(grassTuftPaints.length);
       canvas.drawPath(tuftPath, grassTuftPaints[grassColorIndex]);
     }
   }
+}
+
+/// Represents a reusable textured dot for the ground background.
+class GroundTextureDot {
+  GroundTextureDot({
+    required this.center,
+    required this.radius,
+  });
+
+  final Vector2 center;
+  double radius;
 }

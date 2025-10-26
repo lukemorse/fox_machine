@@ -15,8 +15,6 @@ dependencies:
   flame_rive: ^1.9.7
   flutter_soloud: ^3.0.3
   google_fonts: ^6.2.1
-  weather: ^3.1.1
-  geolocator: ^13.0.3
   games_services: ^3.0.0
   shared_preferences: ^2.2.0
 

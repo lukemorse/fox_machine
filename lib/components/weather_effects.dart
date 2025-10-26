@@ -204,7 +204,6 @@ class CloudEffect extends WeatherEffect {
 /// Sun effect with rays
 class SunEffect extends WeatherEffect {
   // Sun properties
-  final math.Random _random = math.Random();
   late Vector2 _position;
   final double _baseRadius = 50.0;
   double _rayPhase = 0.0;
