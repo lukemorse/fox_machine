@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart' as material;
+import 'package:flutter/foundation.dart';
 
 import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
@@ -47,139 +48,168 @@ class BackgroundComponent extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    size = Vector2(
-      FoxMachineGame.designResolutionWidth,
-      FoxMachineGame.designResolutionHeight,
-    );
-
-    // Create a textured ground paint with gradient
-    _groundPaint = Paint()
-      ..shader = material.LinearGradient(
-        begin: material.Alignment.topCenter,
-        end: material.Alignment.bottomCenter,
-        colors: [
-          material.Colors.brown.shade300, // Lighter soil at top
-          material.Colors.brown.shade700, // Darker soil below
-        ],
-      ).createShader(Rect.fromLTWH(0, 0, 0, 300));
-
-    // Darker outline for ground edge
-    _groundOutlinePaint = Paint()
-      ..color = material.Colors.brown.shade800 // Darker brown for outline
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    // Grass top layer
-    _grassPaint = Paint()
-      ..color = material.Colors.green.shade700
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0;
-
-    // Different colors for grass tufts
-    _grassTuftPaints = [
-      Paint()..color = material.Colors.green.shade300,
-      Paint()..color = material.Colors.green.shade600,
-      Paint()..color = material.Colors.green.shade900,
-    ];
-
-    // Create texture dots for ground
-    _groundTextureDots = [];
-    for (int i = 0; i < 300; i++) {
-      _groundTextureDots.add(
-        Rect.fromCircle(
-          center: Offset(
-            _random.nextDouble() * size.x,
-            size.y - _random.nextDouble() * 300,
-          ),
-          radius: 1 + _random.nextDouble() * 2,
-        ),
+    try {
+      debugPrint('BackgroundComponent: Starting onLoad');
+      size = Vector2(
+        FoxMachineGame.designResolutionWidth,
+        FoxMachineGame.designResolutionHeight,
       );
-    }
+      debugPrint('BackgroundComponent: Size set to ${size.x}x${size.y}');
 
-    // Initialize ground points
-    _groundPoints = [];
-    _updateGroundPoints();
+      // Create a textured ground paint with gradient
+      _groundPaint = Paint()
+        ..shader = material.LinearGradient(
+          begin: material.Alignment.topCenter,
+          end: material.Alignment.bottomCenter,
+          colors: [
+            material.Colors.brown.shade300, // Lighter soil at top
+            material.Colors.brown.shade700, // Darker soil below
+          ],
+        ).createShader(Rect.fromLTWH(0, 0, 0, 300));
 
-    if (_debugGround) {
-      print(
+      // Darker outline for ground edge
+      _groundOutlinePaint = Paint()
+        ..color = material.Colors.brown.shade800 // Darker brown for outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+
+      // Grass top layer
+      _grassPaint = Paint()
+        ..color = material.Colors.green.shade700
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+
+      // Different colors for grass tufts
+      _grassTuftPaints = [
+        Paint()..color = material.Colors.green.shade300,
+        Paint()..color = material.Colors.green.shade600,
+        Paint()..color = material.Colors.green.shade900,
+      ];
+
+      debugPrint('BackgroundComponent: Setting up ground texture');
+      // Create texture dots for ground
+      _groundTextureDots = [];
+      for (int i = 0; i < 300; i++) {
+        _groundTextureDots.add(
+          Rect.fromCircle(
+            center: Offset(
+              _random.nextDouble() * size.x,
+              size.y - _random.nextDouble() * 300,
+            ),
+            radius: 1 + _random.nextDouble() * 2,
+          ),
+        );
+      }
+
+      // Initialize ground points
+      _groundPoints = [];
+      _updateGroundPoints();
+
+      debugPrint(
           'BackgroundComponent: Ground points initialized: ${_groundPoints.length}');
+
+      // Create simple colored rectangles as background layers
+      debugPrint('BackgroundComponent: Creating sky layer');
+      skyLayer = RectangleComponent(
+        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
+            FoxMachineGame.designResolutionHeight),
+        paint: Paint()..color = material.Colors.lightBlue.shade200,
+        position: Vector2(0, 0),
+        priority: -110, // Lower priority (renders below)
+      );
+
+      debugPrint('BackgroundComponent: Creating far trees layer');
+      farTreesLayer = RectangleComponent(
+        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
+            FoxMachineGame.designResolutionHeight * 0.4),
+        paint: Paint()..color = material.Colors.green.shade900,
+        position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.6),
+        priority: -105, // Middle priority
+      );
+
+      debugPrint('BackgroundComponent: Creating mid trees layer');
+      midTreesLayer = RectangleComponent(
+        size: Vector2(FoxMachineGame.designResolutionWidth * 2,
+            FoxMachineGame.designResolutionHeight * 0.3),
+        paint: Paint()..color = material.Colors.green.shade700,
+        position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.7),
+        priority: -102, // Higher priority (renders above other layers)
+      );
+
+      debugPrint('BackgroundComponent: Creating ground component');
+      // Create a separate ground component with highest priority
+      groundComponent = GroundComponent(
+        gameRef: gameRef,
+        groundPoints: _groundPoints,
+        groundPaint: _groundPaint,
+        groundOutlinePaint: _groundOutlinePaint,
+        grassPaint: _grassPaint,
+        grassTuftPaints: _grassTuftPaints,
+        groundTextureDots: _groundTextureDots,
+        random: _random,
+        segmentWidth: segmentWidth,
+        groundSegments: groundSegments,
+        priority: -90, // Highest priority (renders on top)
+        debugGround: _debugGround,
+      );
+
+      // Add all layers and keep references
+      debugPrint('BackgroundComponent: Adding layers to component');
+      layers.add(skyLayer);
+      layers.add(farTreesLayer);
+      layers.add(midTreesLayer);
+
+      add(skyLayer);
+      add(farTreesLayer);
+      add(midTreesLayer);
+      add(groundComponent);
+
+      // Initialize weather effect
+      debugPrint('BackgroundComponent: Initializing weather');
+      _initializeWeather();
+
+      debugPrint('BackgroundComponent: onLoad completed successfully');
+      return super.onLoad();
+    } catch (e, stackTrace) {
+      debugPrint('BackgroundComponent: Error in onLoad: $e');
+      debugPrint('BackgroundComponent: Stack trace: $stackTrace');
+      rethrow;
     }
-
-    // Create simple colored rectangles as background layers
-    skyLayer = RectangleComponent(
-      size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-          FoxMachineGame.designResolutionHeight),
-      paint: Paint()..color = material.Colors.lightBlue.shade200,
-      position: Vector2(0, 0),
-      priority: -110, // Lower priority (renders below)
-    );
-
-    farTreesLayer = RectangleComponent(
-      size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-          FoxMachineGame.designResolutionHeight * 0.4),
-      paint: Paint()..color = material.Colors.green.shade900,
-      position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.6),
-      priority: -105, // Middle priority
-    );
-
-    midTreesLayer = RectangleComponent(
-      size: Vector2(FoxMachineGame.designResolutionWidth * 2,
-          FoxMachineGame.designResolutionHeight * 0.3),
-      paint: Paint()..color = material.Colors.green.shade700,
-      position: Vector2(0, FoxMachineGame.designResolutionHeight * 0.7),
-      priority: -102, // Higher priority (renders above other layers)
-    );
-
-    // Create a separate ground component with highest priority
-    groundComponent = GroundComponent(
-      gameRef: gameRef,
-      groundPoints: _groundPoints,
-      groundPaint: _groundPaint,
-      groundOutlinePaint: _groundOutlinePaint,
-      grassPaint: _grassPaint,
-      grassTuftPaints: _grassTuftPaints,
-      groundTextureDots: _groundTextureDots,
-      random: _random,
-      segmentWidth: segmentWidth,
-      groundSegments: groundSegments,
-      priority: -90, // Highest priority (renders on top)
-      debugGround: _debugGround,
-    );
-
-    // Add all layers and keep references
-    layers.add(skyLayer);
-    layers.add(farTreesLayer);
-    layers.add(midTreesLayer);
-
-    add(skyLayer);
-    add(farTreesLayer);
-    add(midTreesLayer);
-    add(groundComponent);
-
-    // Initialize weather effect
-    _initializeWeather();
-
-    return super.onLoad();
   }
 
   /// Initialize weather based on current conditions
   Future<void> _initializeWeather() async {
+    debugPrint('BackgroundComponent: Starting weather initialization');
     try {
       // Create weather service
       final weatherService = WeatherService();
+      debugPrint('BackgroundComponent: Weather service created');
 
       // Get current weather condition
+      debugPrint('BackgroundComponent: Getting current weather condition');
       final weatherCondition =
           await weatherService.getCurrentWeatherCondition();
+      debugPrint('BackgroundComponent: Weather condition: $weatherCondition');
 
       // Set weather effect based on condition
       await setWeatherCondition(weatherCondition);
 
       _weatherInitialized = true;
-    } catch (e) {
-      print('Error initializing weather: $e');
+      debugPrint('BackgroundComponent: Weather initialized successfully');
+    } catch (e, stackTrace) {
+      debugPrint('BackgroundComponent: Error initializing weather: $e');
+      debugPrint('BackgroundComponent: Weather error stack trace: $stackTrace');
+
       // Default to clear weather on error
-      await setWeatherCondition(WeatherService.CLEAR);
+      debugPrint('BackgroundComponent: Setting default clear weather');
+      try {
+        await setWeatherCondition(WeatherService.CLEAR);
+        _weatherInitialized = true;
+      } catch (fallbackError) {
+        debugPrint(
+            'BackgroundComponent: Even fallback weather failed: $fallbackError');
+        // Just continue without weather effects rather than crashing the game
+      }
     }
   }
 

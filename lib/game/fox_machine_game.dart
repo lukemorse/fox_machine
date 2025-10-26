@@ -146,63 +146,88 @@ class FoxMachineGame extends FlameGame
 
   @override
   Future<void> onLoad() async {
-    // Initialize variable spawn time
-    timeUntilNextCollectible = _generateRandomCollectibleSpawnTime();
+    // Debug the initialization process
+    debugPrint('FoxMachineGame: Starting onLoad');
 
-    // Calculate scaling factors for different device sizes
-    scaleX = size.x / designResolutionWidth;
-    scaleY = size.y / designResolutionHeight;
+    try {
+      // Initialize variable spawn time
+      timeUntilNextCollectible = _generateRandomCollectibleSpawnTime();
 
-    // Initialize audio
-    await audioService.initialize();
+      // Calculate scaling factors for different device sizes
+      scaleX = size.x / designResolutionWidth;
+      scaleY = size.y / designResolutionHeight;
+      debugPrint(
+          'FoxMachineGame: Scaling factors - scaleX: $scaleX, scaleY: $scaleY');
 
-    // Initialize game services
-    await gameServicesManager.initialize();
+      // Initialize audio
+      debugPrint('FoxMachineGame: Initializing audio');
+      await audioService.initialize();
 
-    // Load saved high score
-    await loadHighScore();
+      // Initialize game services
+      debugPrint('FoxMachineGame: Initializing game services');
+      await gameServicesManager.initialize();
 
-    // Add world and camera
-    add(gameWorld);
-    add(gameCamera);
+      // Load saved high score
+      debugPrint('FoxMachineGame: Loading high score');
+      await loadHighScore();
 
-    // Center camera on world
-    gameCamera.viewfinder.position =
-        Vector2(designResolutionWidth / 2, designResolutionHeight / 2);
+      // Add world and camera
+      debugPrint('FoxMachineGame: Adding world and camera');
+      add(gameWorld);
+      add(gameCamera);
 
-    // Add background
-    background = await BackgroundComponent.create();
-    gameWorld.add(background);
+      // Center camera on world
+      gameCamera.viewfinder.position =
+          Vector2(designResolutionWidth / 2, designResolutionHeight / 2);
 
-    // Clean up any potential duplicate player instances first
-    final existingPlayers = gameWorld.children.whereType<Player>().toList();
-    if (existingPlayers.isNotEmpty) {
-      // Keep only the first one if multiple
-      if (existingPlayers.length > 1) {
-        for (int i = 1; i < existingPlayers.length; i++) {
-          existingPlayers[i].removeFromParent();
+      // Add background
+      debugPrint('FoxMachineGame: Creating background');
+      background = await BackgroundComponent.create();
+      debugPrint('FoxMachineGame: Adding background to world');
+      gameWorld.add(background);
+
+      // Clean up any potential duplicate player instances first
+      debugPrint('FoxMachineGame: Checking for existing players');
+      final existingPlayers = gameWorld.children.whereType<Player>().toList();
+      if (existingPlayers.isNotEmpty) {
+        debugPrint(
+            'FoxMachineGame: Found ${existingPlayers.length} existing players');
+        // Keep only the first one if multiple
+        if (existingPlayers.length > 1) {
+          for (int i = 1; i < existingPlayers.length; i++) {
+            existingPlayers[i].removeFromParent();
+          }
         }
+        // Set our reference to the existing player
+        _player = existingPlayers[0];
+        _playerInitialized = true;
+      } else {
+        // No player exists, create a new one
+        debugPrint('FoxMachineGame: Creating new player');
+        _player = Player(baseGroundLevel: baseGroundLevel);
+        gameWorld.add(_player!);
+        _playerInitialized = true;
       }
-      // Set our reference to the existing player
-      _player = existingPlayers[0];
-      _playerInitialized = true;
-    } else {
-      // No player exists, create a new one
-      _player = Player(baseGroundLevel: baseGroundLevel);
-      gameWorld.add(_player!);
-      _playerInitialized = true;
+
+      // Reset the game state
+      debugPrint('FoxMachineGame: Resetting game state');
+      reset(skipPlayerReset: true);
+
+      // Start with the hud overlay
+      debugPrint('FoxMachineGame: Adding HUD overlay');
+      overlays.add('hud');
+
+      // Start main background music
+      debugPrint('FoxMachineGame: Starting background music');
+      audioService.playMainMusic();
+
+      debugPrint('FoxMachineGame: Completed onLoad');
+      return super.onLoad();
+    } catch (e, stackTrace) {
+      debugPrint('FoxMachineGame: Error in onLoad: $e');
+      debugPrint('FoxMachineGame: Stack trace: $stackTrace');
+      rethrow; // Rethrow to let the framework handle the error
     }
-
-    // Reset the game state
-    reset(skipPlayerReset: true);
-
-    // Start with the hud overlay
-    overlays.add('hud');
-
-    // Start main background music
-    audioService.playMainMusic();
-
-    return super.onLoad();
   }
 
   @override
@@ -662,6 +687,59 @@ class FoxMachineGame extends FlameGame
       highScore = prefs.getInt(_highScoreKey) ?? 0;
     } catch (e) {
       debugPrint('Error loading high score: $e');
+    }
+  }
+
+  // Fix camera issues and make sure the world is visible
+  void fixCameraPosition() {
+    debugPrint('FoxMachineGame: Fixing camera position');
+    try {
+      // Make sure the camera is positioned correctly
+      gameCamera.viewfinder.position =
+          Vector2(designResolutionWidth / 2, designResolutionHeight / 2);
+
+      // Ensure the zoom is set correctly
+      gameCamera.viewfinder.zoom = 1.0;
+
+      // Ensure world is added to the camera
+      if (!camera.children.contains(gameWorld)) {
+        debugPrint('FoxMachineGame: World wasn\'t added to camera, re-adding');
+        add(gameWorld);
+      }
+
+      // Ensure background is visible
+      if (background.parent == null) {
+        debugPrint(
+            'FoxMachineGame: Background wasn\'t added to world, re-adding');
+        gameWorld.add(background);
+      }
+
+      debugPrint('FoxMachineGame: Camera position fixed');
+    } catch (e) {
+      debugPrint('FoxMachineGame: Error fixing camera position: $e');
+    }
+  }
+
+  @override
+  void onMount() {
+    super.onMount();
+
+    // Use this additional method to ensure camera is set up correctly
+    debugPrint('FoxMachineGame: onMount called');
+    fixCameraPosition();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    try {
+      // First time render might need additional setup
+      if (GameConstants.debugLogging) {
+        debugPrint('FoxMachineGame: Canvas size: ${camera.viewport.size}');
+      }
+
+      super.render(canvas);
+    } catch (e) {
+      debugPrint('FoxMachineGame: Error in render: $e');
     }
   }
 }

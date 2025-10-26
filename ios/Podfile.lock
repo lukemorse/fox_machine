@@ -4,6 +4,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_soloud (0.0.1):
     - Flutter
+  - games_services (0.0.1):
+    - Flutter
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
@@ -12,14 +14,19 @@ PODS:
     - FlutterMacOS
   - rive_common (0.0.1):
     - Flutter
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
   - Flutter (from `Flutter`)
   - flutter_soloud (from `.symlinks/plugins/flutter_soloud/ios`)
+  - games_services (from `.symlinks/plugins/games_services/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - rive_common (from `.symlinks/plugins/rive_common/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -28,21 +35,27 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_soloud:
     :path: ".symlinks/plugins/flutter_soloud/ios"
+  games_services:
+    :path: ".symlinks/plugins/games_services/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   rive_common:
     :path: ".symlinks/plugins/rive_common/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
   audioplayers_darwin: 877d9a4d06331c5c374595e46e16453ac7eafa40
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_soloud: 21b7dcc9751d8c04b83d7d690ebfdbaf3b5c9cf5
+  games_services: 6c9a23d55bc6ae0129b24507e008643dcb02f341
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   rive_common: 3a4c254c6e4db7e4b9e05daeb3d1f47ae4f7bf76
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
 
 PODFILE CHECKSUM: a57f30d18f102dd3ce366b1d62a55ecbef2158e5
 
-COCOAPODS: 1.16.0
+COCOAPODS: 1.16.2

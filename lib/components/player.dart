@@ -69,42 +69,81 @@ class Player extends PositionComponent
 
   @override
   Future<void> onLoad() async {
-    // Set initial position - center horizontally, at ground level
-    position =
-        Vector2(FoxMachineGame.designResolutionWidth / 4, baseGroundLevel);
+    try {
+      debugPrint('Player: Starting onLoad');
+      // Set initial position - center horizontally, at ground level
+      position =
+          Vector2(FoxMachineGame.designResolutionWidth / 4, baseGroundLevel);
 
-    // Set anchor to bottom center
-    anchor = Anchor.bottomCenter;
+      // Set anchor to bottom center
+      anchor = Anchor.bottomCenter;
 
-    // Load Rive animation
-    final artboard = await loadArtboard(RiveFile.asset('assets/rive/fox.riv'));
-    normalFoxAnimation = RiveComponent(
-      artboard: artboard,
-      size: size,
-      position: Vector2(0, 0),
-    );
+      // Add a placeholder visible component until Rive loads
+      debugPrint('Player: Adding placeholder component');
+      final placeholder = RectangleComponent(
+        size: Vector2(100, 100),
+        paint: Paint()..color = Colors.red,
+        position: Vector2(50, 50),
+      );
+      add(placeholder);
 
-    // Add the normal fox animation
-    add(normalFoxAnimation);
+      try {
+        debugPrint('Player: Loading Rive animation asset');
+        // Load Rive animation with more specific error handling
+        final artboard =
+            await loadArtboard(RiveFile.asset('assets/rive/fox.riv'));
+        debugPrint('Player: Artboard loaded successfully');
 
-    // Set initial animation state to walking
-    controller = StateMachineController.fromArtboard(
-      artboard,
-      'State Machine 1',
-    );
-    artboard.addController(controller!);
-    _startFoxAnimation();
+        normalFoxAnimation = RiveComponent(
+          artboard: artboard,
+          size: size,
+          position: Vector2(0, 0),
+        );
 
-    // Simple rectangular hitbox centered on the character
-    hitbox = RectangleHitbox(
-      size: Vector2(80, 100), // Fixed size based on character
-      position:
-          Vector2(100, 100), // Center it in the Rive component's rectangle
-      anchor: Anchor.center, // Use center anchor for the hitbox
-    )..debugMode = GameConstants.debug;
-    add(hitbox);
+        debugPrint('Player: Adding animation to component');
+        // Add the normal fox animation
+        add(normalFoxAnimation);
 
-    return super.onLoad();
+        // Remove placeholder after animation loads
+        placeholder.removeFromParent();
+
+        debugPrint('Player: Setting up animation state machine');
+        // Set initial animation state to walking
+        controller = StateMachineController.fromArtboard(
+          artboard,
+          'State Machine 1',
+        );
+
+        if (controller == null) {
+          debugPrint('Player: Failed to find State Machine 1 in artboard');
+          throw Exception('Failed to find State Machine 1 in artboard');
+        }
+
+        artboard.addController(controller!);
+        _startFoxAnimation();
+      } catch (e) {
+        debugPrint('Player: Error loading Rive animation: $e');
+        // Keep the placeholder visible if animation fails to load
+        // but don't fail completely - the game can still work with a simple shape
+      }
+
+      debugPrint('Player: Creating hitbox');
+      // Simple rectangular hitbox centered on the character
+      hitbox = RectangleHitbox(
+        size: Vector2(80, 100), // Fixed size based on character
+        position:
+            Vector2(100, 100), // Center it in the Rive component's rectangle
+        anchor: Anchor.center, // Use center anchor for the hitbox
+      )..debugMode = GameConstants.debug;
+      add(hitbox);
+
+      debugPrint('Player: onLoad completed successfully');
+      return super.onLoad();
+    } catch (e, stackTrace) {
+      debugPrint('Player: Error in onLoad: $e');
+      debugPrint('Player: Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   void _startFoxAnimation() async {

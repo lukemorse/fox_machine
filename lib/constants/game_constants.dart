@@ -1,7 +1,8 @@
 /// Constants used throughout the game application
 class GameConstants {
   // Debug flags
-  static bool debug = false;
+  static bool debug = true; // Enable debug mode
+  static bool debugLogging = true; // Enable verbose debug logging
 
   // Gameplay difficulty toggles
   static const bool enableCollectibleVisibilityEffects =
