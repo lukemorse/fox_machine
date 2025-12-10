@@ -72,8 +72,8 @@ class FoxMachineGame extends FlameGame
   late double baseGroundLevel;
 
   // Ground level generation parameters
-  double _groundAmplitude = 40.0; // Height of terrain variations (increased)
-  double _groundWavelength = 1200.0; // Length of terrain wave (increased)
+  final double _groundAmplitude = 40.0; // Height of terrain variations (increased)
+  final double _groundWavelength = 1200.0; // Length of terrain wave (increased)
   double _groundOffset = 0.0; // Scrolls with the game
 
   // Scaling factors for different device sizes

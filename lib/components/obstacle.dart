@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' show Paint;
 
 import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
@@ -28,7 +27,7 @@ class Obstacle extends PositionComponent
 
   static Obstacle random({required double groundLevel}) {
     final random = Random();
-    final types = ObstacleType.values;
+    const types = ObstacleType.values;
     final randomType = types[random.nextInt(types.length)];
 
     return Obstacle(type: randomType, groundLevel: groundLevel);

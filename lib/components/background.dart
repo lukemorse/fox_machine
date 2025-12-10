@@ -58,7 +58,7 @@ class BackgroundComponent extends PositionComponent
             material.Colors.brown.shade300, // Lighter soil at top
             material.Colors.brown.shade700, // Darker soil below
           ],
-        ).createShader(Rect.fromLTWH(0, 0, 0, 300));
+        ).createShader(const Rect.fromLTWH(0, 0, 0, 300));
 
       // Darker outline for ground edge
       _groundOutlinePaint = Paint()
@@ -286,7 +286,7 @@ class GroundComponent extends PositionComponent {
 
     if (debugGround) {
       canvas.drawRect(
-        Rect.fromLTWH(
+        const Rect.fromLTWH(
           0,
           FoxMachineGame.designResolutionHeight * 0.8,
           FoxMachineGame.designResolutionWidth,

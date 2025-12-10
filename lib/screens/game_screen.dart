@@ -5,7 +5,7 @@ import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({Key? key}) : super(key: key);
+  const GameScreen({super.key});
 
   @override
   State<GameScreen> createState() => _GameScreenState();

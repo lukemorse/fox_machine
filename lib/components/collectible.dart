@@ -1,17 +1,18 @@
 import 'dart:math';
-import 'package:flame/components.dart';
+
 import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 
-import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
+import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
 
 enum CollectibleType { mushroom }
 
 class Collectible extends PositionComponent
-    with CollisionCallbacks, HasGameRef<FoxMachineGame> {
+    with CollisionCallbacks, HasGameReference<FoxMachineGame> {
   final CollectibleType type = CollectibleType.mushroom;
   late ShapeComponent shape;
   bool isCollected = false;
@@ -29,7 +30,7 @@ class Collectible extends PositionComponent
   double _oscillationTime = 0;
 
   // Visibility control variables
-  bool _enableVisibilityEffects = GameConstants
+  final bool _enableVisibilityEffects = GameConstants
       .enableCollectibleVisibilityEffects; // Based on game settings
   double _visibilityValue = 1.0; // 0.0 is invisible, 1.0 is fully visible
   double _visibilityChangeTimer = 0.0;
@@ -68,7 +69,8 @@ class Collectible extends PositionComponent
     }
 
     // Apply visibility to the shape
-    shape.paint.color = shape.paint.color.withOpacity(_visibilityValue);
+    shape.paint.color =
+        shape.paint.color.withAlpha((_visibilityValue * 255).toInt());
   }
 
   static Collectible random({required double groundLevel}) {
@@ -121,7 +123,7 @@ class Collectible extends PositionComponent
   void update(double dt) {
     super.update(dt);
 
-    if (gameRef.gameState != GameState.playing || isCollected) return;
+    if (game.gameState != GameState.playing || isCollected) return;
 
     // Update oscillation time - used for complex movement patterns
     _oscillationTime += dt;
@@ -130,7 +132,7 @@ class Collectible extends PositionComponent
     _updateVisibility(dt);
 
     // Move collectible towards player
-    double moveSpeed = gameRef.gameSpeed * gameRef.speedMultiplier;
+    double moveSpeed = game.gameSpeed * game.speedMultiplier;
 
     // Mushroom moves faster
     moveSpeed *= 1.8;
@@ -141,7 +143,7 @@ class Collectible extends PositionComponent
     position.x -= moveSpeed * dt * speedVariation;
 
     // Update y-position to follow the dynamic ground level while maintaining height offset
-    double yPos = gameRef.getGroundLevelAt(position.x) - _heightOffset;
+    double yPos = game.getGroundLevelAt(position.x) - _heightOffset;
 
     // Additional height
     yPos -= 120.0; // Keep mushrooms very high
@@ -151,9 +153,8 @@ class Collectible extends PositionComponent
     // Extremely complex and unpredictable movement for mushrooms
 
     // Vertical movement: multiple frequencies and amplitudes
-    double mushFloat1 = sin(
-            (_oscillationTime * 3.2 * _uniqueFrequencyOffset) +
-                _uniquePhaseOffset) *
+    double mushFloat1 = sin((_oscillationTime * 3.2 * _uniqueFrequencyOffset) +
+            _uniquePhaseOffset) *
         22 *
         _uniqueAmplitudeOffset;
     double mushFloat2 =
@@ -198,10 +199,10 @@ class Collectible extends PositionComponent
 
     // Make fully visible when collected (for particle effects)
     _visibilityValue = 1.0;
-    shape.paint.color = shape.paint.color.withOpacity(1.0);
+    shape.paint.color = shape.paint.color.withAlpha(255);
 
     // Award points
-    gameRef.score += 50;
+    game.score += 50;
     // Add mushroom collection particle effect
     _addCollectionParticles(Colors.purple);
 
@@ -217,7 +218,7 @@ class Collectible extends PositionComponent
   // Helper method to add particle effects on collection
   void _addCollectionParticles(Color color) {
     final random = Random();
-    final particleCount = 20;
+    const particleCount = 20;
 
     // Create particle component
     final particleComponent = ParticleSystemComponent(
@@ -258,7 +259,7 @@ class Collectible extends PositionComponent
     particleComponent.position = position.clone();
 
     // Add the particle system to the game world
-    gameRef.gameWorld.add(particleComponent);
+    game.gameWorld.add(particleComponent);
 
     // Remove the particle system after it completes
     Future.delayed(const Duration(milliseconds: 800), () {

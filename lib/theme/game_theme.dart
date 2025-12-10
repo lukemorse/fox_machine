@@ -31,7 +31,7 @@ class GameTheme {
         decoration: TextDecoration.none,
       );
 
-  static TextStyle get bodyStyle => TextStyle(
+  static TextStyle get bodyStyle => const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 24,
         color: textColor,
@@ -39,11 +39,11 @@ class GameTheme {
         decoration: TextDecoration.none,
       );
 
-  static TextStyle get scoreStyle => TextStyle(
+  static TextStyle get scoreStyle => const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 20,
         color: scoreColor,
-        shadows: const [
+        shadows: [
           Shadow(
             blurRadius: 2.0,
             color: Colors.black,
@@ -53,12 +53,12 @@ class GameTheme {
         decoration: TextDecoration.none,
       );
 
-  static TextStyle get robotModeStyle => TextStyle(
+  static TextStyle get robotModeStyle => const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 18,
         color: Colors.lightBlue,
         fontWeight: FontWeight.bold,
-        shadows: const [
+        shadows: [
           Shadow(
             blurRadius: 2.0,
             color: Colors.black,

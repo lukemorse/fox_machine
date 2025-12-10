@@ -8,9 +8,9 @@ class TestGameScreen extends StatelessWidget {
   final Function() onBackToMenu;
 
   const TestGameScreen({
-    Key? key,
+    super.key,
     required this.onBackToMenu,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

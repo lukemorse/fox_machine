@@ -8,7 +8,7 @@ import '../constants/game_constants.dart';
 
 // A simpler navigation manager using Flutter's navigation
 class GameNavigator extends StatefulWidget {
-  const GameNavigator({Key? key}) : super(key: key);
+  const GameNavigator({super.key});
 
   @override
   State<GameNavigator> createState() => _GameNavigatorState();

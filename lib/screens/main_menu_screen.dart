@@ -6,8 +6,7 @@ class MainMenuScreen extends StatefulWidget {
   // Callback to navigate to the game
   final VoidCallback onPlayPressed;
 
-  const MainMenuScreen({Key? key, required this.onPlayPressed})
-      : super(key: key);
+  const MainMenuScreen({super.key, required this.onPlayPressed});
 
   @override
   State<MainMenuScreen> createState() => _MainMenuScreenState();
@@ -43,7 +42,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -76,7 +75,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                     },
                     child: Transform.rotate(
                       angle: -0.05,
-                      child: Text(
+                      child: const Text(
                         'FOX MACHINE',
                         style: TextStyle(
                           fontFamily: 'Bangers',
@@ -113,7 +112,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                           color: Colors.orangeAccent,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black54,
                               offset: Offset(5, 5),
@@ -121,7 +120,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                             ),
                           ],
                         ),
-                        child: Text(
+                        child: const Text(
                           'START GAME',
                           style: TextStyle(
                             fontFamily: 'PressStart2P',
@@ -140,12 +139,12 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                   Transform.rotate(
                     angle: 0.03,
                     child: Container(
-                      padding: EdgeInsets.all(15),
+                      padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(
+                      child: const Text(
                         'PART FOX, PART MACHINE',
                         style: TextStyle(
                           fontFamily: 'ComicNeue',
