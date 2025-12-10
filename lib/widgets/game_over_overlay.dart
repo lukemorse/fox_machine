@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import '../game/fox_machine_game.dart';
 
 /// Displays the game over screen when the player dies
@@ -21,25 +20,7 @@ class GameOverOverlay extends StatefulWidget {
   State<GameOverOverlay> createState() => _GameOverOverlayState();
 }
 
-class _GameOverOverlayState extends State<GameOverOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _GameOverOverlayState extends State<GameOverOverlay> {
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -195,25 +176,8 @@ class _QuirkyButton extends StatefulWidget {
   State<_QuirkyButton> createState() => _QuirkyButtonState();
 }
 
-class _QuirkyButtonState extends State<_QuirkyButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _QuirkyButtonState extends State<_QuirkyButton> {
   bool _isHovering = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -665,6 +665,7 @@ packages:
     dependency: transitive
     description:
       name: vm_service
+<<<<<<< HEAD
       sha256: "45caa6c5917fa127b5dbcfbd1fa60b14e583afdc08bfc96dda38886ca252eb60"
       url: "https://pub.dev"
     source: hosted
@@ -677,6 +678,12 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.1"
+=======
+      sha256: ddfa8d30d89985b96407efce8acbdd124701f96741f2d981ca860662f1c0dc02
+      url: "https://pub.dev"
+    source: hosted
+    version: "15.0.0"
+>>>>>>> 3c15283bb5552d44a448e7567e5a4f406967d97e
   web:
     dependency: transitive
     description:
