@@ -383,28 +383,13 @@ class Player extends PositionComponent
       // Collect item
       other.collect();
 
-      // Add energy based on collectible type
-      switch (other.type) {
-        case CollectibleType.berry:
-          gameRef.energy = math.min(gameRef.maxEnergy,
-              gameRef.energy + GameConstants.energyGainFromBerry);
-          break;
-        case CollectibleType.egg:
-          gameRef.energy = math.min(gameRef.maxEnergy,
-              gameRef.energy + GameConstants.energyGainFromEgg);
-          break;
-        case CollectibleType.mushroom:
-          gameRef.energy = math.min(gameRef.maxEnergy,
-              gameRef.energy + GameConstants.energyGainFromMushroom);
-          break;
+      // Trigger robot transformation if it's a mushroom
+      if (other.type == CollectibleType.mushroom) {
+        gameRef.toggleRobotForm();
       }
 
       // Play pop sound when collecting items
       audioService.playSfx(AudioConstants.popSfx);
-
-      if (other.type == CollectibleType.mushroom) {
-        gameRef.toggleRobotForm();
-      }
     }
   }
 

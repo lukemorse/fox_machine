@@ -1,27 +1,29 @@
-import 'package:flame/game.dart';
+import 'dart:math' as math;
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'dart:math' as math;
+import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math';
 
-import '../components/player.dart';
-import '../components/obstacle.dart';
-import '../components/collectible.dart';
 import '../components/background.dart';
+import '../components/collectible.dart';
+import '../components/obstacle.dart';
+import '../components/player.dart';
 import '../constants/game_constants.dart';
 import '../models/game_state.dart';
-import '../widgets/hud_overlay.dart';
-import '../widgets/game_over_overlay.dart';
-import '../widgets/pause_overlay.dart';
 import '../services/audio_service.dart';
 import '../services/game_services_manager.dart';
+import '../widgets/game_over_overlay.dart';
+import '../widgets/hud_overlay.dart';
+import '../widgets/pause_overlay.dart';
 
 /// Main game class that handles game logic and state
 class FoxMachineGame extends FlameGame
-    with TapDetector, HasCollisionDetection, KeyboardEvents {
+    with TapCallbacks, HasCollisionDetection, KeyboardEvents {
   // Optional callback for navigating back to main menu
   Function? onMainMenuPressed;
 
@@ -39,14 +41,9 @@ class FoxMachineGame extends FlameGame
   double speedMultiplier = GameConstants.normalSpeedMultiplier;
   bool isRobotForm = false;
 
-  // Energy system
-  double energy = GameConstants.maxEnergy;
-  double maxEnergy = GameConstants.maxEnergy;
-  double energyUsageRate = GameConstants.energyUsageRate;
-  double energyRegenRate = GameConstants.energyRegenRate;
-
   // Services
   final AudioService audioService = AudioService();
+
   final GameServicesManager gameServicesManager = GameServicesManager();
 
   // High score
@@ -109,10 +106,8 @@ class FoxMachineGame extends FlameGame
 
   // Helper method to generate random collectible spawn time
   double _generateRandomCollectibleSpawnTime() {
-    return GameConstants.collectibleSpawnRateMin +
-        Random().nextDouble() *
-            (GameConstants.collectibleSpawnRateMax -
-                GameConstants.collectibleSpawnRateMin);
+    // Spawns much less frequently since it's a special item
+    return 10.0 + Random().nextDouble() * 15.0; // 10-25 seconds
   }
 
   // Camera setup
@@ -331,17 +326,7 @@ class FoxMachineGame extends FlameGame
       currentJumpPower = math.min(tapHoldDuration / maxJumpHoldTime, 1.0);
       player.updateJumpVelocity(currentJumpPower);
 
-      // Consume energy while holding jump - more slowly now
-      energy = math.max(0, energy - (energyUsageRate * dt));
-
-      // If energy is completely depleted, force release jump
-      if (energy <= 0) {
-        isTapHeld = false;
-        player.releaseJump();
-      }
-    } else if (energy < maxEnergy && !player.isJumping) {
-      // Regenerate energy slowly when not jumping and not at max
-      energy = math.min(maxEnergy, energy + (energyRegenRate * dt));
+      player.updateJumpVelocity(currentJumpPower);
     }
 
     // Generate obstacles
@@ -368,7 +353,7 @@ class FoxMachineGame extends FlameGame
 
   void _spawnObstacle() {
     // Get the ground level at spawn position
-    final spawnX = designResolutionWidth + 100; // Spawn off-screen
+    const spawnX = designResolutionWidth + 100; // Spawn off-screen
     final groundLevel = getGroundLevelAt(spawnX);
 
     final obstacle = Obstacle.random(groundLevel: groundLevel);
@@ -377,7 +362,7 @@ class FoxMachineGame extends FlameGame
 
   void _spawnCollectible() {
     // Get the ground level at spawn position for proper placement
-    final spawnX = designResolutionWidth + 100; // Spawn off-screen
+    const spawnX = designResolutionWidth + 100; // Spawn off-screen
     final groundLevel = getGroundLevelAt(spawnX);
 
     final collectible = Collectible.random(groundLevel: groundLevel);
@@ -385,17 +370,12 @@ class FoxMachineGame extends FlameGame
   }
 
   @override
-  void onTapDown(TapDownInfo info) {
+  void onTapDown(TapDownEvent event) {
     if (gameState == GameState.playing) {
-      // Only allow jump if player has enough energy
-      if (energy >= GameConstants.energyPerJump) {
-        // Consume energy for jump
-        energy -= GameConstants.energyPerJump;
-
-        isTapHeld = true;
-        tapHoldDuration = 0.0;
-        player.jump();
-      }
+      // Allow jump
+      isTapHeld = true;
+      tapHoldDuration = 0.0;
+      player.jump();
     } else if (gameState == GameState.paused) {
       // If game is paused, tapping anywhere outside the pause overlay will resume
       resume();
@@ -404,7 +384,7 @@ class FoxMachineGame extends FlameGame
   }
 
   @override
-  void onTapUp(TapUpInfo info) {
+  void onTapUp(TapUpEvent event) {
     if (gameState == GameState.playing) {
       isTapHeld = false;
       player.releaseJump();
@@ -412,7 +392,7 @@ class FoxMachineGame extends FlameGame
   }
 
   @override
-  void onTapCancel() {
+  void onTapCancel(TapCancelEvent event) {
     if (gameState == GameState.playing) {
       isTapHeld = false;
       player.releaseJump();
@@ -497,9 +477,6 @@ class FoxMachineGame extends FlameGame
     currentJumpPower = 0.0;
     _robotFormTimer = 0.0;
     _isRevertingFromRobotForm = false;
-
-    // Always reset energy to maximum (100)
-    energy = GameConstants.maxEnergy;
 
     // Start main background music only if not skipped
     if (!skipMusic) {

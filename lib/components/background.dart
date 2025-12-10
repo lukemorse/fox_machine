@@ -6,19 +6,12 @@ import 'package:flutter/foundation.dart';
 
 import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
-import '../services/weather_service.dart';
-import 'weather_effects.dart';
 
 /// Background component that includes both the sky and ground
 class BackgroundComponent extends PositionComponent
     with HasGameRef<FoxMachineGame> {
   // List to keep track of background layers
   final List<RectangleComponent> layers = [];
-
-  // Current weather effect
-  WeatherEffect? _weatherEffect;
-  int _currentWeatherCondition = WeatherService.CLEAR;
-  bool _weatherInitialized = false;
 
   // Store ground segments for efficient rendering
   late List<Vector2> _groundPoints;
@@ -164,10 +157,6 @@ class BackgroundComponent extends PositionComponent
       add(midTreesLayer);
       add(groundComponent);
 
-      // Initialize weather effect
-      debugPrint('BackgroundComponent: Initializing weather');
-      _initializeWeather();
-
       debugPrint('BackgroundComponent: onLoad completed successfully');
       return super.onLoad();
     } catch (e, stackTrace) {
@@ -175,75 +164,6 @@ class BackgroundComponent extends PositionComponent
       debugPrint('BackgroundComponent: Stack trace: $stackTrace');
       rethrow;
     }
-  }
-
-  /// Initialize weather based on current conditions
-  Future<void> _initializeWeather() async {
-    debugPrint('BackgroundComponent: Starting weather initialization');
-    try {
-      // Create weather service
-      final weatherService = WeatherService();
-      debugPrint('BackgroundComponent: Weather service created');
-
-      // Get current weather condition
-      debugPrint('BackgroundComponent: Getting current weather condition');
-      final weatherCondition =
-          await weatherService.getCurrentWeatherCondition();
-      debugPrint('BackgroundComponent: Weather condition: $weatherCondition');
-
-      // Set weather effect based on condition
-      await setWeatherCondition(weatherCondition);
-
-      _weatherInitialized = true;
-      debugPrint('BackgroundComponent: Weather initialized successfully');
-    } catch (e, stackTrace) {
-      debugPrint('BackgroundComponent: Error initializing weather: $e');
-      debugPrint('BackgroundComponent: Weather error stack trace: $stackTrace');
-
-      // Default to clear weather on error
-      debugPrint('BackgroundComponent: Setting default clear weather');
-      try {
-        await setWeatherCondition(WeatherService.CLEAR);
-        _weatherInitialized = true;
-      } catch (fallbackError) {
-        debugPrint(
-            'BackgroundComponent: Even fallback weather failed: $fallbackError');
-        // Just continue without weather effects rather than crashing the game
-      }
-    }
-  }
-
-  /// Set the weather effect based on condition
-  Future<void> setWeatherCondition(int condition) async {
-    // Only change if different from current condition
-    if (condition == _currentWeatherCondition && _weatherEffect != null) {
-      return;
-    }
-
-    // Remove existing weather effect if any
-    if (_weatherEffect != null) {
-      _weatherEffect!.removeFromParent();
-      _weatherEffect = null;
-    }
-
-    // Create new weather effect based on condition
-    switch (condition) {
-      case WeatherService.RAIN:
-        _weatherEffect = RainEffect();
-        break;
-      case WeatherService.CLOUDS:
-        _weatherEffect = CloudEffect();
-        break;
-      case WeatherService.CLEAR:
-        _weatherEffect = SunEffect();
-        break;
-      default:
-        _weatherEffect = SunEffect();
-    }
-
-    // Add weather effect to the component
-    add(_weatherEffect!);
-    _currentWeatherCondition = condition;
   }
 
   // Factory method for easier creation
@@ -308,9 +228,17 @@ class BackgroundComponent extends PositionComponent
         _groundTextureDots[i] = Rect.fromCircle(
           center: Offset(
             gameRef.size.x + _random.nextDouble() * 50,
-            dot.center.dy,
+            dot.center.dx, // Preserve Y relative position logic if needed, but here we just reset X
           ),
           radius: dot.width / 2,
+        );
+        // Reset Y to something random to avoid lines forming
+        _groundTextureDots[i] = Rect.fromCircle(
+          center: Offset(
+             gameRef.size.x + _random.nextDouble() * 50,
+             size.y - _random.nextDouble() * 300,
+          ),
+           radius: dot.width / 2,
         );
       } else {
         // Move with the game speed
