@@ -1,9 +1,9 @@
 import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'routes/game_router.dart';
 import 'theme/game_theme.dart';
-import 'constants/game_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -76,9 +76,6 @@ class FoxMachineGame extends FlameGame
   double _groundWavelength = 1200.0; // Length of terrain wave (increased)
   double _groundOffset = 0.0; // Scrolls with the game
 
-  // Seed for terrain generation
-  final int _terrainSeed = DateTime.now().millisecondsSinceEpoch;
-
   // Scaling factors for different device sizes
   late double scaleX;
   late double scaleY;
@@ -86,7 +83,6 @@ class FoxMachineGame extends FlameGame
   // Components
   Player? _player; // Private nullable player reference
   late BackgroundComponent background;
-  bool _playerInitialized = false; // Track if player has been initialized
 
   // Player accessor with null safety
   Player get player {
@@ -195,13 +191,11 @@ class FoxMachineGame extends FlameGame
         }
         // Set our reference to the existing player
         _player = existingPlayers[0];
-        _playerInitialized = true;
       } else {
         // No player exists, create a new one
         debugPrint('FoxMachineGame: Creating new player');
         _player = Player(baseGroundLevel: baseGroundLevel);
         gameWorld.add(_player!);
-        _playerInitialized = true;
       }
 
       // Reset the game state
@@ -225,7 +219,6 @@ class FoxMachineGame extends FlameGame
     }
   }
 
-  @override
   Map<String, OverlayWidgetBuilder<FoxMachineGame>> get overlayBuilders => {
         'hud': (BuildContext context, FoxMachineGame game) =>
             HUDOverlay(game: game),
@@ -449,9 +442,6 @@ class FoxMachineGame extends FlameGame
       overlays.remove('hud');
     }
 
-    // Set a flag to prevent multiple game over screens
-    bool isGameOverScheduled = false;
-
     // Add the game over overlay after a delay to let all particles display
     Future.delayed(const Duration(milliseconds: 2000), () {
       // Only add the overlay if we're still in game over state
@@ -530,7 +520,6 @@ class FoxMachineGame extends FlameGame
         // No player exists, create a new one
         _player = Player(baseGroundLevel: baseGroundLevel);
         gameWorld.add(_player!);
-        _playerInitialized = true;
       } else {
         // Update reference to first player and reset it
         _player = existingPlayers[0];

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../game/fox_machine_game.dart';
-import 'dart:math' as math;
 
 /// Displays the pause menu overlay
 class PauseOverlay extends StatefulWidget {

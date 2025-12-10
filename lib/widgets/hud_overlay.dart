@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../game/fox_machine_game.dart';
-import '../constants/game_constants.dart';
 
 /// Displays the heads-up display during gameplay
 class HUDOverlay extends StatelessWidget {
@@ -35,26 +35,25 @@ class HUDOverlay extends StatelessWidget {
                 ),
               ),
 
-                  // Pause button
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(), // Remove default padding/constraints
-                    icon: const Icon(
-                      Icons.pause,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    onPressed: () {
-                      // This will trigger the pause overlay through the game's pause method
-                      game.pause();
-                    },
-                  ),
+              // Pause button
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints:
+                    const BoxConstraints(), // Remove default padding/constraints
+                icon: const Icon(
+                  Icons.pause,
+                  color: Colors.white,
+                  size: 30,
+                ),
+                onPressed: () {
+                  // This will trigger the pause overlay through the game's pause method
+                  game.pause();
+                },
+              ),
             ],
           ),
         ],
       ),
     );
   }
-
 }
