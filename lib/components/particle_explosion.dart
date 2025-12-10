@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,8 @@ import 'package:flutter/material.dart';
 import '../game/fox_machine_game.dart';
 
 /// A component that creates explosion particle effects
-class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
+class ParticleExplosion extends Component
+    with HasGameReference<FoxMachineGame> {
   final Vector2 position;
   final Color color;
   final double size;
@@ -107,13 +109,13 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
                 // For game over, add more orange tint to smoke
                 final smokeColor = isGameOver
                     ? Color.lerp(
-                        Colors.grey.withOpacity(opacity),
-                        Colors.orange.withOpacity(opacity * 0.6),
+                        Colors.grey.withAlpha((opacity * 255).toInt()),
+                        Colors.orange.withAlpha((opacity * 0.6 * 255).toInt()),
                         0.5,
                       )!
                     : Color.lerp(
-                        Colors.grey.withOpacity(opacity),
-                        baseColor.withOpacity(opacity * 0.3),
+                        Colors.grey.withAlpha((opacity * 255).toInt()),
+                        baseColor.withAlpha((opacity * 0.3 * 255).toInt()),
                         0.3,
                       )!;
 
@@ -170,7 +172,7 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
                   final fireSize = size * 0.6 * (1 - particle.progress * 0.7);
 
                   final paint = Paint()
-                    ..color = fireColor.withOpacity(opacity)
+                    ..color = fireColor.withAlpha((opacity * 255).toInt())
                     ..style = PaintingStyle.fill;
 
                   // Draw flame-like shape
@@ -182,7 +184,8 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
 
                   // Add glow
                   final glowPaint = Paint()
-                    ..color = Colors.white.withOpacity(opacity * 0.4)
+                    ..color =
+                        Colors.white.withAlpha((opacity * 0.4 * 255).toInt())
                     ..style = PaintingStyle.stroke
                     ..strokeWidth = 2.0;
 
@@ -246,7 +249,7 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
 
                 // Main particle (filled circle)
                 final paint = Paint()
-                  ..color = particleColor.withOpacity(opacity)
+                  ..color = particleColor.withAlpha((opacity * 255).toInt())
                   ..style = PaintingStyle.fill;
 
                 canvas.drawCircle(
@@ -257,7 +260,8 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
 
                 // Glow effect (outer stroke)
                 final glowPaint = Paint()
-                  ..color = particleColor.withOpacity(opacity * 0.5)
+                  ..color =
+                      particleColor.withAlpha((opacity * 0.5 * 255).toInt())
                   ..style = PaintingStyle.stroke
                   ..strokeWidth = 2.0;
 
@@ -282,7 +286,7 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
           renderer: (canvas, particle) {
             final opacity = (1 - particle.progress) * 0.8;
             final flashPaint = Paint()
-              ..color = Colors.white.withOpacity(opacity)
+              ..color = Colors.white.withAlpha((opacity * 255).toInt())
               ..style = PaintingStyle.fill;
 
             canvas.drawCircle(
@@ -300,8 +304,8 @@ class ParticleExplosion extends Component with HasGameRef<FoxMachineGame> {
     flashSystem.position = position.clone();
 
     // Add directly to game world (like in collectible)
-    gameRef.gameWorld.add(particleSystem);
-    gameRef.gameWorld.add(flashSystem);
+    game.gameWorld.add(particleSystem);
+    game.gameWorld.add(flashSystem);
 
     // Remove this component since we don't need it anymore
     // (particles are now directly in the game world)

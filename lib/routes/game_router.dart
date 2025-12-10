@@ -111,7 +111,7 @@ class _GameNavigatorState extends State<GameNavigator> {
               left: 10,
               child: Container(
                 padding: const EdgeInsets.all(8),
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withAlpha(128),
                 child: const Text(
                   'DEBUG MODE',
                   style: TextStyle(

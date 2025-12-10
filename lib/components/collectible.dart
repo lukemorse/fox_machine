@@ -113,7 +113,8 @@ class Collectible extends PositionComponent
     if (_enableVisibilityEffects) {
       // Start with full visibility
       _visibilityValue = 1.0;
-      shape.paint.color = shape.paint.color.withOpacity(_visibilityValue);
+      shape.paint.color =
+          shape.paint.color.withAlpha((_visibilityValue * 255).toInt());
     }
 
     return super.onLoad();
@@ -237,8 +238,12 @@ class Collectible extends PositionComponent
             child: ComputedParticle(
               renderer: (canvas, particle) {
                 final paint = Paint()
-                  ..color = color.withOpacity(
-                      (1 - particle.progress) * random.nextDouble() * 0.5 + 0.5)
+                  ..color = color.withAlpha((((1 - particle.progress) *
+                                  random.nextDouble() *
+                                  0.5 +
+                              0.5) *
+                          255)
+                      .toInt())
                   ..style = PaintingStyle.fill;
 
                 final size =

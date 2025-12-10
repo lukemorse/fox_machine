@@ -1,22 +1,23 @@
 import 'dart:math';
-import 'package:flame/components.dart';
+
 import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-import '../game/fox_machine_game.dart';
 import '../constants/game_constants.dart';
+import '../game/fox_machine_game.dart';
 import '../models/game_state.dart';
 
 enum ObstacleType { tree, rock, river }
 
 class Obstacle extends PositionComponent
-    with CollisionCallbacks, HasGameRef<FoxMachineGame> {
+    with CollisionCallbacks, HasGameReference<FoxMachineGame> {
   final ObstacleType type;
   late ShapeComponent shape;
   final double groundLevel;
 
   // Current ground level at obstacle's position
-  double get currentGroundLevel => gameRef.getGroundLevelAt(position.x);
+  double get currentGroundLevel => game.getGroundLevelAt(position.x);
 
   // TODO: Replace shape component with Rive animations
   // Example:
@@ -133,10 +134,10 @@ class Obstacle extends PositionComponent
   void update(double dt) {
     super.update(dt);
 
-    if (gameRef.gameState != GameState.playing) return;
+    if (game.gameState != GameState.playing) return;
 
     // Move obstacle towards player
-    position.x -= gameRef.gameSpeed * gameRef.speedMultiplier * dt;
+    position.x -= game.gameSpeed * game.speedMultiplier * dt;
 
     // Update y-position to follow the ground level
     position.y = currentGroundLevel;

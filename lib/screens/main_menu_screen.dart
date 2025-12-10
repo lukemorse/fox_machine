@@ -141,7 +141,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                     child: Container(
                       padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withAlpha(26),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -173,7 +173,7 @@ class StarPattern extends CustomPainter {
     final math.Random random =
         math.Random(42); // Fixed seed for consistent pattern
     final Paint paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withAlpha(77)
       ..style = PaintingStyle.fill;
 
     // Draw stars

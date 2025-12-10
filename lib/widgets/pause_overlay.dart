@@ -51,11 +51,11 @@ class _PauseOverlayState extends State<PauseOverlay>
         child: Container(
           padding: const EdgeInsets.all(25),
           decoration: BoxDecoration(
-            color: const Color(0xFF2A4494).withOpacity(0.9),
+            color: const Color(0xFF2A4494).withAlpha(230),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.cyan.withOpacity(0.4),
+                color: Colors.cyan.withAlpha(102),
                 spreadRadius: 5,
                 blurRadius: 15,
                 offset: const Offset(0, 3),
@@ -155,14 +155,14 @@ class _PauseButtonState extends State<_PauseButton> {
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha(77),
               spreadRadius: _isHovering ? 2 : 0,
               blurRadius: _isHovering ? 8 : 3,
               offset: _isHovering ? const Offset(0, 2) : const Offset(0, 3),
             ),
           ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withAlpha(204),
             width: 2,
           ),
         ),

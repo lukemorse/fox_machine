@@ -123,7 +123,7 @@ class _GameScreenState extends State<GameScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withAlpha(204),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -178,7 +178,7 @@ class _GameScreenState extends State<GameScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withAlpha(204),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(

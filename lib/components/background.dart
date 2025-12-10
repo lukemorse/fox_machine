@@ -292,7 +292,7 @@ class GroundComponent extends PositionComponent {
           FoxMachineGame.designResolutionWidth,
           FoxMachineGame.designResolutionHeight * 0.2,
         ),
-        Paint()..color = material.Colors.red.withOpacity(0.3),
+        Paint()..color = material.Colors.red.withAlpha(77),
       );
     }
 

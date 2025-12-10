@@ -7,9 +7,6 @@ PODS:
     - Flutter
   - games_services (0.0.1):
     - Flutter
-  - geolocator_apple (1.2.0):
-    - Flutter
-    - FlutterMacOS
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -24,7 +21,6 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_soloud (from `.symlinks/plugins/flutter_soloud/ios`)
   - games_services (from `.symlinks/plugins/games_services/ios`)
-  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - rive_common (from `.symlinks/plugins/rive_common/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -38,8 +34,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_soloud/ios"
   games_services:
     :path: ".symlinks/plugins/games_services/ios"
-  geolocator_apple:
-    :path: ".symlinks/plugins/geolocator_apple/darwin"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   rive_common:
@@ -52,7 +46,6 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_soloud: 78b2184802f2183a6799c6c6fcbc8e99edf4cf9a
   games_services: 6c9a23d55bc6ae0129b24507e008643dcb02f341
-  geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
   rive_common: 4743dbfd2911c99066547a3c6454681e0fa907df
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6

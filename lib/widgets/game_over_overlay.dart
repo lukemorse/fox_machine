@@ -27,11 +27,11 @@ class _GameOverOverlayState extends State<GameOverOverlay> {
       child: Container(
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
-          color: const Color(0xFF421C52).withOpacity(0.92),
+          color: const Color(0xFF421C52).withAlpha(235),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.orange.withOpacity(0.5),
+              color: Colors.orange.withAlpha(128),
               spreadRadius: 5,
               blurRadius: 10,
               offset: const Offset(0, 3),
@@ -196,14 +196,14 @@ class _QuirkyButtonState extends State<_QuirkyButton> {
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withAlpha(77),
               spreadRadius: _isHovering ? 2 : 0,
               blurRadius: _isHovering ? 8 : 3,
               offset: _isHovering ? const Offset(0, 2) : const Offset(0, 3),
             ),
           ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withAlpha(204),
             width: 2,
           ),
         ),

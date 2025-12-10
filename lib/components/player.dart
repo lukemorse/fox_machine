@@ -1,23 +1,24 @@
-import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
-import 'package:flame_rive/flame_rive.dart';
-import 'package:flutter/material.dart';
-import 'package:fox_machine/constants/game_constants.dart';
-import 'package:fox_machine/services/audio_service.dart';
-import 'package:fox_machine/constants/audio_constants.dart';
 import 'dart:math' as math;
 
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:flame_rive/flame_rive.dart';
+import 'package:flutter/material.dart';
+import 'package:fox_machine/constants/audio_constants.dart';
+import 'package:fox_machine/constants/game_constants.dart';
+import 'package:fox_machine/services/audio_service.dart';
+
 import '../game/fox_machine_game.dart';
-import 'obstacle.dart';
-import 'collectible.dart';
 import '../models/game_state.dart';
+import 'collectible.dart';
+import 'obstacle.dart';
 import 'particle_explosion.dart';
 
 /// The player character component
 class Player extends PositionComponent
-    with CollisionCallbacks, HasGameRef<FoxMachineGame> {
+    with CollisionCallbacks, HasGameReference<FoxMachineGame> {
   // Access audio service through game reference
-  AudioService get audioService => gameRef.audioService;
+  AudioService get audioService => game.audioService;
 
   // Random number generator for explosion sounds
   final math.Random _random = math.Random();
@@ -57,7 +58,7 @@ class Player extends PositionComponent
   final double baseGroundLevel;
 
   // Current ground level at player's position
-  double get currentGroundLevel => gameRef.getGroundLevelAt(position.x);
+  double get currentGroundLevel => game.getGroundLevelAt(position.x);
 
   // Rive animation components
   late RiveComponent normalFoxAnimation;
@@ -157,7 +158,7 @@ class Player extends PositionComponent
     super.update(dt);
 
     // Check if game is paused
-    if (gameRef.gameState == GameState.paused) {
+    if (game.gameState == GameState.paused) {
       // Pause animation if needed
       pauseAnimation();
       return;
@@ -166,7 +167,7 @@ class Player extends PositionComponent
       resumeAnimation();
     }
 
-    if (gameRef.gameState != GameState.playing) return;
+    if (game.gameState != GameState.playing) return;
 
     // Get current ground level at player's x position
     final groundLevel = currentGroundLevel;
@@ -332,7 +333,7 @@ class Player extends PositionComponent
         // Create big explosion at player position with game over effect
         ParticleExplosion.createBigExplosion(
           position: position.clone(),
-          world: gameRef.gameWorld,
+          world: game.gameWorld,
           baseColor: Colors.red,
           size: 30.0,
           isGameOver: true, // Enable dramatic game over explosion
@@ -341,7 +342,7 @@ class Player extends PositionComponent
         // Create explosion at obstacle position with game over effect
         ParticleExplosion.createBigExplosion(
           position: other.position.clone(),
-          world: gameRef.gameWorld,
+          world: game.gameWorld,
           baseColor: Colors.orange,
           size: 25.0,
           isGameOver: true, // Enable dramatic game over explosion
@@ -357,12 +358,12 @@ class Player extends PositionComponent
         });
 
         // Game over
-        gameRef.gameOver();
+        game.gameOver();
       } else {
         // In robot form, create a smaller explosion at obstacle (not game over)
         ParticleExplosion.createBigExplosion(
           position: other.position.clone(),
-          world: gameRef.gameWorld,
+          world: game.gameWorld,
           baseColor: Colors.blue,
           size: 20.0,
           isGameOver: false, // Regular explosion, not game over
@@ -385,7 +386,7 @@ class Player extends PositionComponent
 
       // Trigger robot transformation if it's a mushroom
       if (other.type == CollectibleType.mushroom) {
-        gameRef.toggleRobotForm();
+        game.toggleRobotForm();
       }
 
       // Play pop sound when collecting items
